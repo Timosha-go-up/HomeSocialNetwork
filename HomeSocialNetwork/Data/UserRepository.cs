@@ -12,19 +12,11 @@ namespace HomeSocialNetwork.Data
     {
         private readonly string _connectionString;
 
-        public UserRepository()
+        public UserRepository(Action<string>? logAction = null)
         {
-            // Создаём папку Data/DB/, если её нет
-            PathBaseFiles.EnsureDatabaseDirectoryExists();
+            _connectionString = DatabaseConfig.ConnectionString;
 
-            // Получаем полный путь к файлу БД (уже включает "users.db")
-            var dbPath = PathBaseFiles.DatabasePath;
-
-            // Формируем строку подключения
-            _connectionString = $"Data Source={dbPath}";
-
-            // Инициализируем БД (если нужно)
-            var initializer = new DatabaseInitializer(_connectionString);
+            var initializer = new DatabaseInitializer(_connectionString, logAction);
             initializer.Initialize();
         }
 
@@ -35,57 +27,37 @@ namespace HomeSocialNetwork.Data
             try
             {
                 connection.Execute(
-                "INSERT INTO Users (Email, Password) VALUES (@Email, @Password)",
-                 user);
+                    @"INSERT INTO Users (FirstName, LastName, PhoneNumber, Email, Password) 
+                  VALUES (@FirstName, @LastName, @PhoneNumber, @Email, @Password)",
+                    user);
             }
-            catch (SqliteException ex) when (ex.SqliteErrorCode == 19)
+            catch (SqliteException ex) when (ex.SqliteErrorCode == 19) // UNIQUE constraint
             {
                 throw new InvalidOperationException(
                     $"Email '{user.Email}' уже зарегистрирован.");
             }
-            catch (SqliteException ex)
+            catch (Exception ex)
             {
-                // Другие ошибки SQLite (на всякий случай)
                 throw new Exception($"Ошибка базы данных: {ex.Message}", ex);
             }
         }
 
-
-
-
         public List<User> GetAll()
         {
-            var users = new List<User>();
-
             using var connection = new SqliteConnection(_connectionString);
-            connection.Open();
-
-            var command = connection.CreateCommand();
-            command.CommandText = "SELECT Id, Email, Password ,CreatedAt FROM Users ORDER BY Id";
-
-            using var reader = command.ExecuteReader();
-
-            while (reader.Read())
-            {
-                users.Add(new User
-                {
-                    Id = reader.GetInt32(0),
-                    Email = reader.GetString(1),
-                    Password = reader.GetString(2),
-                    CreatedAt = reader.GetDateTime(3)  // добавляем чтение даты
-                });
-            }
-
-
-            return users;
+            return connection.Query<User>(
+                @"SELECT Id, FirstName, LastName, PhoneNumber, Email, Password, CreatedAt 
+              FROM Users ORDER BY Id").ToList();
         }
 
-        public User GetByEmail(string email)
+        public User? GetByEmail(string email)
         {
-          using var connection = new SqliteConnection(_connectionString);
-          return connection.QueryFirstOrDefault<User>( "SELECT * FROM Users WHERE Email = @Email", new { Email = email });                                         
+            using var connection = new SqliteConnection(_connectionString);
+            return connection.QueryFirstOrDefault<User>(
+                @"SELECT Id, FirstName, LastName, PhoneNumber, Email, Password, CreatedAt
+          FROM Users WHERE Email = @Email",
+                new { Email = email });
         }
-
-        
     }
+
 }

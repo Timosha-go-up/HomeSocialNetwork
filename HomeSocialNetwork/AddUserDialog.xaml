@@ -21,14 +21,30 @@
         <ColumnDefinition Width="*"/>
     </Grid.ColumnDefinitions>
 
+        <!-- First Name -->
+        <Label Grid.Row="0" Grid.Column="0" Content="Имя (FirstName):" />
+        <TextBox Grid.Row="0" Grid.Column="1" x:Name="FirstNameTextBox" 
+             ToolTip="Обязательное поле" />
+
+        <!-- Last Name -->
+        <Label Grid.Row="1" Grid.Column="0" Content="Фамилия (LastName):" />
+        <TextBox Grid.Row="1" Grid.Column="1" x:Name="LastNameTextBox"
+             ToolTip="Можно не указывать" />
+
+        <!-- Phone Number -->
+        <Label Grid.Row="2" Grid.Column="0" Content="Телефон (PhoneNumber):" />
+        <TextBox Grid.Row="2" Grid.Column="1" x:Name="PhoneNumberTextBox"
+             ToolTip="Формат: +7 XXX XXX-XX-XX" />
+
         <!-- Email -->
-        <Label Grid.Row="0" Grid.Column="0" Content="Email:"/>
-        <TextBox Grid.Row="0" Grid.Column="1" x:Name="EmailTextBox" />
+        <Label Grid.Row="3" Grid.Column="0" Content="Email:" />
+        <TextBox Grid.Row="3" Grid.Column="1" x:Name="EmailTextBox"
+            ToolTip="Обязательное поле, уникальный адрес" />
 
         <!-- Пароль -->
-        <Label Grid.Row="1" Grid.Column="0" Content="Enter Пароль:"/>
-        <PasswordBox Grid.Row="1" Grid.Column="1" x:Name="PasswordBox" />
-
+        <Label Grid.Row="4" Grid.Column="0" Content="Пароль (Password):" />
+        <PasswordBox Grid.Row="4" Grid.Column="1" x:Name="PasswordBox"
+                ToolTip="Обязательное поле, минимум 6 символов" />
         <!-- Кнопки -->
         <StackPanel Grid.Row="3" Grid.ColumnSpan="2" HorizontalAlignment="Right" Orientation="Horizontal">
             <Button Content="ОК" Width="70" Click="OkButton_Click" IsDefault="True" Margin="0 0 10 0"/>

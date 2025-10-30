@@ -21,28 +21,59 @@ namespace HomeSocialNetwork
             InitializeComponent();
         }
 
-        // Свойства для получения данных из диалогового окна
+        // Свойства для получения данных из формы
+        public string FirstName => FirstNameTextBox.Text;
+        public string LastName => LastNameTextBox.Text;
+        public string PhoneNumber => PhoneNumberTextBox.Text;
         public string Email => EmailTextBox.Text;
         public string Password => PasswordBox.Password;
 
-
         private void OkButton_Click(object sender, RoutedEventArgs e)
         {
-            // Проверяем, что поля заполнены
-            if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password))
+            // Валидация обязательных полей
+            if (string.IsNullOrWhiteSpace(FirstName))
             {
-                MessageBox.Show("Пожалуйста, заполните все поля.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(
+                    "Пожалуйста, укажите имя (FirstName).",
+                    "Ошибка",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+                FirstNameTextBox.Focus();
                 return;
             }
 
-            DialogResult = true; // Подтверждаем выбор
-            Close(); // Закрываем окно
+            if (string.IsNullOrWhiteSpace(Email))
+            {
+                MessageBox.Show(
+                    "Пожалуйста, укажите email.",
+                    "Ошибка",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+                EmailTextBox.Focus();
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(Password))
+            {
+                MessageBox.Show(
+                    "Пожалуйста, укажите пароль.",
+                    "Ошибка",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+                PasswordBox.Focus();
+                return;
+            }
+
+            // Если все проверки пройдены — подтверждаем действие
+            DialogResult = true;
+            Close();
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
-            DialogResult = false; // Отменяем выбор
+            DialogResult = false;
             Close();
         }
     }
+
 }
