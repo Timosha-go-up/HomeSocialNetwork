@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:HomeSocialNetwork"
         mc:Ignorable="d"
-        Title="Добавить пользователя" Height="250" Width="400"
+        Title="Добавить пользователя" Height="300" Width="400"
         WindowStartupLocation="CenterOwner">
 
     
@@ -15,9 +15,11 @@
         <RowDefinition Height="Auto"/>  
         <RowDefinition Height="Auto"/>
         <RowDefinition Height="Auto"/>
-    </Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
     <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="140"/>
+        <ColumnDefinition Width="200"/>
         <ColumnDefinition Width="*"/>
     </Grid.ColumnDefinitions>
 
@@ -46,8 +48,8 @@
         <PasswordBox Grid.Row="4" Grid.Column="1" x:Name="PasswordBox"
                 ToolTip="Обязательное поле, минимум 6 символов" />
         <!-- Кнопки -->
-        <StackPanel Grid.Row="3" Grid.ColumnSpan="2" HorizontalAlignment="Right" Orientation="Horizontal">
-            <Button Content="ОК" Width="70" Click="OkButton_Click" IsDefault="True" Margin="0 0 10 0"/>
+        <StackPanel Grid.Row="5" Grid.ColumnSpan="2" HorizontalAlignment="Right" Orientation="Horizontal">
+            <Button Content="ОК" Width="70" Click="OkButton_Click" IsDefault="True" Margin="20 0 10 0"/>
             <Button Content="Отмена" Width="70" Click="CancelButton_Click" IsCancel="True"/>
         </StackPanel>
     </Grid>

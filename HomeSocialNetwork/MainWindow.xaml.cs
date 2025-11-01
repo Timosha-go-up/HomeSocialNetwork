@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Threading;
 namespace HomeSocialNetwork
 {
@@ -28,13 +29,14 @@ namespace HomeSocialNetwork
         {
 
             InitializeComponent();
-
+          
+            WriteLog("Log message");
             var userRepository = new UserRepository(WriteLog);
             _userService = new UserService(userRepository);
 
             System.Diagnostics.Debug.WriteLine($"MainWindow запущен. PID: {Process.GetCurrentProcess().Id}");
             WriteLog("Приложение запущено. PID: " + Process.GetCurrentProcess().Id);
-            WriteLog("Таймер скрытия панели логов запущен (интервал: 5 сек).");
+            WriteLog("Таймер скрытия панели логов запущен (интервал: 10 сек).");
             _logPanel = LogPanel;
 
             if (_logPanel == null)
@@ -43,7 +45,7 @@ namespace HomeSocialNetwork
             }
 
             _logHideTimer = new DispatcherTimer();
-            _logHideTimer.Interval = TimeSpan.FromSeconds(20);
+            _logHideTimer.Interval = TimeSpan.FromSeconds(40);
             _logHideTimer.Tick += OnLogHideTimerTick;
             
             StartLogHideTimer();  // Запускаем таймер ПОСЛЕ записи в лог
@@ -52,6 +54,13 @@ namespace HomeSocialNetwork
         }
 
 
+
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        {
+           
+                this.Close();
+            
+        }
         private async void OnLogHideTimerTick(object sender, EventArgs e)
         {
             try
@@ -117,7 +126,7 @@ namespace HomeSocialNetwork
                                 sv.ScrollToEnd();
                         });
 
-                        await Task.Delay(40); 
+                        await Task.Delay(30); 
                     }
                 }
             }
@@ -129,6 +138,14 @@ namespace HomeSocialNetwork
 
 
 
+        private void UsersGrid_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            // Если нажата левая кнопка мыши — начинаем перетаскивание окна
+            if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                this.DragMove();
+            }
+        }
 
 
 

@@ -14,7 +14,7 @@ namespace HomeSocialNetwork.Data
 
         public UserRepository(Action<string>? logAction = null)
         {
-            _connectionString = DatabaseConfig.ConnectionString;
+            _connectionString = $"Data Source={PathBaseFiles.DatabasePath}";
 
             var initializer = new DatabaseInitializer(_connectionString, logAction);
             initializer.Initialize();
@@ -27,7 +27,7 @@ namespace HomeSocialNetwork.Data
             try
             {
                 connection.Execute(
-                    @"INSERT INTO Users (FirstName, LastName, PhoneNumber, Email, Password) 
+                    @"INSERT INTO users (FirstName, LastName, PhoneNumber, Email, Password) 
                   VALUES (@FirstName, @LastName, @PhoneNumber, @Email, @Password)",
                     user);
             }
@@ -47,7 +47,7 @@ namespace HomeSocialNetwork.Data
             using var connection = new SqliteConnection(_connectionString);
             return connection.Query<User>(
                 @"SELECT Id, FirstName, LastName, PhoneNumber, Email, Password, CreatedAt 
-              FROM Users ORDER BY Id").ToList();
+              FROM users ORDER BY Id").ToList();
         }
 
         public User? GetByEmail(string email)
@@ -55,7 +55,7 @@ namespace HomeSocialNetwork.Data
             using var connection = new SqliteConnection(_connectionString);
             return connection.QueryFirstOrDefault<User>(
                 @"SELECT Id, FirstName, LastName, PhoneNumber, Email, Password, CreatedAt
-          FROM Users WHERE Email = @Email",
+          FROM users WHERE Email = @Email",
                 new { Email = email });
         }
     }

@@ -9,7 +9,6 @@ namespace HomeSocialNetwork
     /// </summary>
     public partial class App : Application
     {
-
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
@@ -24,10 +23,7 @@ namespace HomeSocialNetwork
 
             // Создаём папку Data/DB/, если её нет
             Helpers.PathBaseFiles.EnsureDatabaseDirectoryExists();
-
-            // ЗАПУСКАЕМ ГЛАВНОЕ ОКНО
-            var mainWindow = new MainWindow();
-            mainWindow.Show();
+         
         }
 
 

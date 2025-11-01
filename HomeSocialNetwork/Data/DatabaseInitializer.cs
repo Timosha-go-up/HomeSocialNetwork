@@ -2,25 +2,10 @@
 using HomeSocialNetwork.Helpers;
 using Microsoft.Data.Sqlite;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 
 namespace HomeSocialNetwork.Data
-{
-
-    public static class DatabaseConfig
-    {
-        private static readonly string _databasePath;
-
-        static DatabaseConfig()
-        {
-            _databasePath = PathBaseFiles.DatabasePath;
-            PathBaseFiles.EnsureDatabaseDirectoryExists();
-        }
-
-        public static string ConnectionString => $"Data Source={_databasePath}";
-    }
-
-
-
+{ 
     public class DatabaseInitializer
     {
         private readonly string _connectionString;
@@ -34,22 +19,22 @@ namespace HomeSocialNetwork.Data
 
         public void Initialize()
         {
-            Log("Инициализация БД: проверка таблицы Users...");
+            Log("Инициализация БД: проверка таблицы users...");
 
-            using var connection = new SqliteConnection(DatabaseConfig.ConnectionString);
+            using var connection = new SqliteConnection(_connectionString);
 
             try
             {
                connection.Open();
                 var tableExists = connection.ExecuteScalar<int>(
                     @"SELECT COUNT(*) FROM sqlite_master
-                  WHERE type = 'table' AND name = 'Users'");
+                  WHERE type = 'table' AND name = 'users'");
 
                 if (tableExists == 0)
                 {
-                    Log("Таблица Users не найдена. Создаю новую...");
+                    Log("Таблица users не найдена. Создаю новую...");
                     connection.Execute(
-                    @"CREATE TABLE Users (
+                    @"CREATE TABLE users (
                     Id INTEGER PRIMARY KEY AUTOINCREMENT,
                     FirstName TEXT NOT NULL DEFAULT '',
                     LastName TEXT DEFAULT '',
@@ -59,7 +44,7 @@ namespace HomeSocialNetwork.Data
                     CreatedAt DATETIME NOT NULL DEFAULT (DATETIME('now', 'localtime'))
                     )");
 
-                    Log("Таблица Users успешно создана.");
+                    Log("Таблица users успешно создана.");
                 }
                 else
                 {
@@ -75,11 +60,58 @@ namespace HomeSocialNetwork.Data
         }
 
 
+        public void Initialize2()
+        {
+            using (var connection = new SqliteConnection(_connectionString))
+            {
+                connection.Open();
+
+                // 1. Логируем путь и существование файла
+                Log($"Путь к БД: {_connectionString}");
+                Log($"Файл БД существует: {File.Exists(_connectionString.Replace("Data Source=", ""))}");
+
+                // 2. Проверяем, есть ли таблица
+                if (TableExists(connection))
+                {
+                    Log("Таблица users уже существует. Текущая структура:");
+                    LogTableStructure(connection);
+
+                    // Если нужно пересоздать — удаляем
+                    connection.Execute("DROP TABLE users");
+                    Log("Старая таблица users удалена.");
+                }
+                else
+                {
+                    Log("Таблицы users не найдено. Создаю новую...");
+                }
+
+                // 3. Выводим SQL перед выполнением
+                var createSql = @"CREATE TABLE users (
+            Id INTEGER PRIMARY KEY AUTOINCREMENT,
+            FirstName TEXT NOT NULL DEFAULT '',
+            LastName TEXT DEFAULT '',
+            PhoneNumber TEXT DEFAULT '',
+            Email TEXT UNIQUE NOT NULL,
+            Password TEXT NOT NULL,
+            CreatedAt DATETIME NOT NULL DEFAULT (DATETIME('now', 'localtime'))
+        )";
+                Log($"Выполняю SQL:\n{createSql}");
+
+                // 4. Создаём таблицу
+                connection.Execute(createSql);
+                Log("Таблица users успешно создана.");
+
+                // 5. Сразу проверяем структуру новой таблицы
+                LogTableStructure(connection);
+            }
+        }
+
+
         private void CheckTableStructure(SqliteConnection connection)
         {
-            Log("Таблица Users уже существует. Проверяю структуру таблицы Users...");
+            Log("Таблица users уже существует. Проверяю структуру таблицы Users...");
 
-            var columns = connection.Query<dynamic>(@"PRAGMA table_info(Users)")
+            var columns = connection.Query<dynamic>(@"PRAGMA table_info(users)")
                 .ToDictionary(c => c.name.ToLower(), c => new
                 {
                     Type = c.type.ToLower(),
@@ -89,11 +121,7 @@ namespace HomeSocialNetwork.Data
 
             // Список обязательных столбцов с ожидаемыми свойствами
             var requiredColumns = new Dictionary<string, Action<dynamic>>
-            {
-                ["id"] = col => {
-                    if (col.Type != "integer") Log("Ошибка: Id должен быть INTEGER.");
-                    if (!col.NotNull) Log("Ошибка: Id должен быть NOT NULL.");
-                },
+            {               
                 ["firstname"] = col => {
                     if (col.Type != "text") Log("Ошибка: FirstName должен быть TEXT.");
                     if (!col.NotNull) Log("Ошибка: FirstName должен быть NOT NULL.");
@@ -137,9 +165,9 @@ namespace HomeSocialNetwork.Data
             }
 
             if (isStructureValid)
-                Log("Структура таблицы Users корректна.");
+                Log("Структура таблицы users корректна.");
             else
-                Log("Предупреждение: структура таблицы Users содержит ошибки.");
+                Log("Предупреждение: структура таблицы users содержит ошибки.");
         }
 
 
@@ -149,6 +177,46 @@ namespace HomeSocialNetwork.Data
             if (_logAction != null)
                 _logAction(message);
         }
+
+
+
+
+
+
+        private void LogTableStructure(SqliteConnection connection)
+        {
+            try
+            {
+                var columns = connection.Query<dynamic>(@"PRAGMA table_info(users)")
+                    .ToList();
+
+                Log("=== СТРУКТУРА ТАБЛИЦЫ users ===");
+
+                foreach (var col in columns)
+                {
+                    Log("- Поле: " + col.name);
+                    Log("  Тип: " + col.type);
+                    Log("  PRIMARY KEY: " + (col.pk == 1 ? "Да" : "Нет"));
+                    Log("  AUTOINCREMENT: " + (col.autoinc == 1 ? "Да" : "Нет"));
+                    Log("  NOT NULL: " + (col.notnull == 1 ? "Да" : "Нет"));
+                }
+
+                Log("=== КОНЕЦ СТРУКТУРЫ ===");
+            }
+            catch (Exception ex)
+            {
+                Log("Ошибка при получении структуры таблицы: " + ex.Message);
+            }
+        }
+
+        private bool TableExists(SqliteConnection connection)
+        {
+            var count = connection.ExecuteScalar<int>(
+                @"SELECT COUNT(*) FROM sqlite_master 
+          WHERE type = 'table' AND LOWER(name) = 'users'");
+            return count > 0;
+        }
+
     }
 
 }

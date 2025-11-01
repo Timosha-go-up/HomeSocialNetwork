@@ -1,77 +1,228 @@
 ﻿<Window x:Class="HomeSocialNetwork.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:HomeSocialNetwork"
-        mc:Ignorable="d"
-        Title="HomeSocialNetwork" Height="600" Width="1000" WindowStartupLocation="CenterScreen">
+        Title="HomeSocialNetwork"
+        Height="700" Width="1000"
+        WindowStyle="None"
+      ResizeMode="NoResize"
 
-    <Grid Margin="10">
+
+        Background="DarkGray"
+         AllowsTransparency="True" 
+        FontFamily="Calibri" FontSize="14">
+    <Grid Background="#FF615454">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50" />
+            <!-- Шапка -->
+            <RowDefinition Height="190"/>
+            <!-- Основная область -->
+            <RowDefinition Height="*"/>
+            <!-- Дополнительная панель -->
+            <RowDefinition Height="200"/>
+            <!-- Таблица пользователей -->
+            <RowDefinition Height="40"/>
+            <!-- Статус-бар -->
+        </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="13*"/>
-            <ColumnDefinition Width="36*"/>
+            <ColumnDefinition Width="150"/>
+            <!-- Меню -->
+            <ColumnDefinition Width="700"/>
+            <!-- Контент -->
+            <ColumnDefinition Width="100"/>
+            <!-- Боковая панель -->
+            <ColumnDefinition Width="50"/>
+            <!-- Растягивающийся столбец -->
         </Grid.ColumnDefinitions>
-        <!-- Шапка -->
-        <StackPanel Orientation="Horizontal" VerticalAlignment="Top" Grid.ColumnSpan="2">
-            <Image Source="/Resources/logo.png" Width="40" Height="40"/>
-            <TextBlock Text="HomeSocialNetwork" FontSize="20" FontWeight="Bold" Margin="10,0"/>
-        </StackPanel>
 
-        <Grid x:Name="LogPanel" Grid.ColumnSpan="2" Margin="219,100,221,0">
-            <ScrollViewer Height="140"
-                 VerticalScrollBarVisibility="Auto"
-                 BorderThickness="2"
-                 BorderBrush="DarkSlateGray"
-                 Background="Black"
-                 Margin="-80,0,-80,0"
-                 VerticalAlignment="Top"
-                 RenderTransformOrigin="0.503,0.214">
-                <TextBlock x:Name="LogDisplay"
-                   TextWrapping="Wrap"
-                   Margin="10"
-                   FontSize="14"
-                   Foreground="LimeGreen"
-                   FontFamily="Consolas"
-                   HorizontalAlignment="Stretch"
-                   VerticalAlignment="Top"/>
-            </ScrollViewer>
+        <!-- 1. Шапка (строка 0) -->
+        <Border Grid.Row="0" Grid.ColumnSpan="4" Background="#FF29443B" Padding="10,0"  MouseDown="UsersGrid_MouseDown">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="200"/>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="50" />
+                </Grid.ColumnDefinitions>
+
+
+
+                <!-- Логотип и название -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+
+                    <TextBlock Text="HomeSocialNetwork" FontSize="20" FontFamily="Arial Rounded MT Bold" 
+                               Foreground="White"  />
+                </StackPanel>
+
+
+                <!-- Кнопка закрытия -->
+            </Grid>
+        </Border>
+        <!-- LogPanel: занимает столбец 1–3 во втором ряду -->
+        <Grid Grid.Row="1" 
+      Grid.Column="1" 
+      Grid.ColumnSpan="3"
+      Margin="5,5,5,5"
+      Background="#FF312E2E"
+      x:Name="LogPanel">
+            <Grid.RowDefinitions>
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions >
+                <ColumnDefinition  />
+            </Grid.ColumnDefinitions>
+
+            <!-- Текстовое поле для логов -->
+            <TextBlock x:Name="LogDisplay"
+               TextWrapping="Wrap"
+               FontSize="16"
+               Foreground="LimeGreen"
+               Background="#FF312E2E"
+                       Margin="10,5,5,5"
+             />
+
+
+
+
 
         </Grid>
-
-        <!-- Меню -->
-        <StackPanel Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,310,0,0" Grid.Column="1">
-            <Button Content="Добавить" Click="AddUser_Click" Width="80" Margin="5"/>
-            <Button Content="Найти" Click="FindUser_Click" Width="80" Margin="5"/>
-            <Button Content="Обновить" Click="Refresh_Click" Width="80" Margin="5"/>
+        <!-- 2. Меню (столбец 0, строки 1–3) -->
+        <StackPanel Grid.Row="1" Grid.RowSpan="3" Grid.Column="0" Margin="5,5,5,5" Orientation="Vertical">
+            <Button Content="Menu" Height="45" FontWeight="Bold" Foreground="#FF007E83" Background= "#FF615454" />
+            <Button Content="Добавить" Height="45" FontWeight="Bold" Foreground="#FF007E83" Background="#FF615454" Click ="AddUser_Click"/>
+            <Button Content="Найти" Height="45" FontWeight="Bold" Foreground="#FF007E83" Background="#FF615454" Click="FindUser_Click"/>
+            <Button Content="Обновить" Height="45" FontWeight="Bold" Foreground="#FF007E83" Background="#FF615454" Click="Refresh_Click"/>
         </StackPanel>
 
-        <!-- Основная область: таблица пользователей -->
-        <DataGrid Name="UsersGrid"
-          Margin="0,350,0,35"
-          AutoGenerateColumns="False"
-          CanUserAddRows="False"
-          IsReadOnly="True"
-          Grid.ColumnSpan="2"
-          MaxHeight="140"
-          VerticalScrollBarVisibility="Auto"
-          ScrollViewer.CanContentScroll="True">
+        <!-- 3. Основная область (столбец 1, строка 1) -->
+        <Grid Grid.Row="1" Grid.Column="0" Margin="5,5,5,5">
+            <!-- Ваш контент здесь -->
+        </Grid>
+
+        <!-- 4. Таблица пользователей (столбец 1–3, строка 3) -->
+
+        <DataGrid Grid.Row="3"
+                  Grid.ColumnSpan="4"
+                  x:Name="UsersGrid"
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False"
+                  IsReadOnly="True"
+                  VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Auto"
+                  FontSize="14" 
+                  FontFamily="Global Sans Serif"
+                  Foreground="#FF007E83"
+                  FontWeight="Bold"
+                  Background="#FF615454" 
+                  BorderBrush="Black"
+                  Margin="5,5,5,5"
+                    >
+           
+
             <DataGrid.Columns>
-                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50"/>
-                <DataGridTextColumn Header="First Name" Binding="{Binding FirstName}" Width="150"/>
-                <DataGridTextColumn Header="Last Name" Binding="{Binding LastName}" Width="150"/>
-                <DataGridTextColumn Header="Phone Number" Binding="{Binding PhoneNumber}" Width="120"/>
-                <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="150"/>
-                <DataGridTextColumn Header="Password" Binding="{Binding Password}" Width="150"/>
-                <DataGridTextColumn Header="Дата создания" Binding="{Binding CreatedAt, StringFormat=\{0:dd.MM.yyyy HH:mm\}}" Width="120"/>
+                <!-- ID -->
+                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50">
+                    <DataGridTextColumn.CellStyle>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="Background" Value="#FFA9A8A8"/>
+                            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                        </Style>
+                    </DataGridTextColumn.CellStyle>
+                </DataGridTextColumn>
+
+                <!-- First Name -->
+                <DataGridTextColumn Header="First Name" Binding="{Binding FirstName}" Width="140">
+                    <DataGridTextColumn.CellStyle>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="Background" Value="#FFA9A8A8"/>
+                            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                        </Style>
+                    </DataGridTextColumn.CellStyle>
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="#FF007E83"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTextColumn Header="Last Name" Binding="{Binding LastName}" Width="140">
+                    <DataGridTextColumn.CellStyle>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="Background" Value="#FFA9A8A8"/>
+
+                            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                        </Style>
+                    </DataGridTextColumn.CellStyle>
+                </DataGridTextColumn>
+
+
+                <DataGridTextColumn Header="Phone Number" Binding="{Binding PhoneNumber}" Width="140">
+                    <DataGridTextColumn.CellStyle>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="Background" Value="#FFA9A8A8"/>
+
+                            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                        </Style>
+                    </DataGridTextColumn.CellStyle>
+                </DataGridTextColumn>
+
+
+                <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="180">
+                    <DataGridTextColumn.CellStyle>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="Background" Value="#FFA9A8A8"/>
+
+                            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                        </Style>
+                    </DataGridTextColumn.CellStyle>
+                </DataGridTextColumn>
+
+
+                <DataGridTextColumn Header="Password" Binding="{Binding Password}" Width="140">
+                    <DataGridTextColumn.CellStyle>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="Background" Value="#FFA9A8A8"/>
+
+                            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                        </Style>
+                    </DataGridTextColumn.CellStyle>
+                </DataGridTextColumn>
+
+
+                <DataGridTextColumn Header="Дата создания" Binding="{Binding CreatedAt, StringFormat=\{0:dd.MM.yyyy HH:mm\}}" Width="*">
+                    <DataGridTextColumn.CellStyle>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="Background" Value="#FFA9A8A8"/>
+
+                            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                        </Style>
+                    </DataGridTextColumn.CellStyle>
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="#FF007E83"/>
+
+
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
             </DataGrid.Columns>
         </DataGrid>
 
-        <!-- Статус‑бар -->
-        <StatusBar VerticalAlignment="Bottom" Height="30" Grid.ColumnSpan="2">
-            <TextBlock Name="StatusText" Text="Готов"/>
+        <!-- 5. Статус-бар (строка 4, весь width) -->
+        <StatusBar Grid.Row="4" Grid.ColumnSpan="3" Background="#FF615454" Margin="0,0,0,0"   FontSize="14">
+            <TextBlock Name="StatusText" Text="Готов" Foreground="White" Background="#FF615454" FontWeight="Bold"/>
         </StatusBar>
+        <Button Grid.Column="3"
+            Content="×"
+            Width="49"
+            Height="49"
+            Background="#FF29443B" 
+            BorderThickness="0"  
+            Foreground="#333333" 
+            FontWeight="Bold"
+            FontSize="24"
+            Click="CloseButton_Click" Margin="0,0,0,0" >
+        </Button>
     </Grid>
 </Window>
+
 
 
