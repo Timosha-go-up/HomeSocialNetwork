@@ -19,7 +19,6 @@ namespace HomeSocialNetwork.Data
             var initializer = new DatabaseInitializer(_connectionString, logAction);
             initializer.Initialize();
         }
-
         public void Create(User user)
         {
             using var connection = new SqliteConnection(_connectionString);
@@ -41,7 +40,6 @@ namespace HomeSocialNetwork.Data
                 throw new Exception($"Ошибка базы данных: {ex.Message}", ex);
             }
         }
-
         public List<User> GetAll()
         {
             using var connection = new SqliteConnection(_connectionString);
@@ -49,7 +47,6 @@ namespace HomeSocialNetwork.Data
                 @"SELECT Id, FirstName, LastName, PhoneNumber, Email, Password, CreatedAt 
               FROM users ORDER BY Id").ToList();
         }
-
         public User? GetByEmail(string email)
         {
             using var connection = new SqliteConnection(_connectionString);

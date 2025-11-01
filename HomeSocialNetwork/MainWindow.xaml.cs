@@ -2,6 +2,7 @@
 using HomeSocialNetwork.Models;
 using HomeSocialNetwork.Services;
 using System.Collections.Concurrent;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
@@ -15,11 +16,8 @@ namespace HomeSocialNetwork
     public partial class MainWindow : Window
     {        
         private UserService _userService;
-
         private ConcurrentQueue<string> _logQueue = new();
-        private bool _isProcessing = false;
-
-        // Добавляем сюда новые поля
+        private bool _isProcessing = false;       
         private DispatcherTimer _logHideTimer;
         private Grid _logPanel; // Ссылка на контейнер логов из XAML
        
@@ -28,8 +26,7 @@ namespace HomeSocialNetwork
         public MainWindow()
         {
 
-            InitializeComponent();
-          
+            InitializeComponent();          
             WriteLog("Log message");
             var userRepository = new UserRepository(WriteLog);
             _userService = new UserService(userRepository);
@@ -52,14 +49,9 @@ namespace HomeSocialNetwork
 
             LoadUsers();
         }
-
-
-
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
-           
-                this.Close();
-            
+                          this.Close();            
         }
         private async void OnLogHideTimerTick(object sender, EventArgs e)
         {
@@ -67,7 +59,6 @@ namespace HomeSocialNetwork
             {
                 // Ждём, пока завершится обработка очереди логов
                 await WaitForLogProcessingCompletion();
-
                 _logHideTimer.Stop();
                 _logPanel.Visibility = Visibility.Collapsed;
                 WriteLog("Таймер сработал: панель логов скрыта.");
@@ -136,8 +127,6 @@ namespace HomeSocialNetwork
             }
         }
 
-
-
         private void UsersGrid_MouseDown(object sender, MouseButtonEventArgs e)
         {
             // Если нажата левая кнопка мыши — начинаем перетаскивание окна
@@ -146,16 +135,18 @@ namespace HomeSocialNetwork
                 this.DragMove();
             }
         }
-
-
-
         // Загрузка списка пользователей
         private void LoadUsers()
         {
             try
             {
                 var users = _userService.GetAllUsers();
-                UsersGrid.ItemsSource = users; // Привязка к DataGrid
+
+                // Главное: DataContext должен содержать свойство Users
+                DataContext = new
+                {
+                    Users = new ObservableCollection<User>(users)  // Обязательно ObservableCollection!
+                };
                 StatusText.Text = $"Загружено {users.Count} пользователей";
             }
             catch (Exception ex)
@@ -175,12 +166,11 @@ namespace HomeSocialNetwork
             {
                 var newUser = new User
                 {
-                    FirstName = dialog.FirstName,  // добавьте это в диалоге!
-                    LastName = dialog.LastName,    // добавьте это в диалоге!
-                    PhoneNumber = dialog.PhoneNumber, // добавьте это в диалоге!
+                    FirstName = dialog.FirstName, 
+                    LastName = dialog.LastName,    
+                    PhoneNumber = dialog.PhoneNumber, 
                     Email = dialog.Email,
-                    Password = dialog.Password
-                    // CreatedAt не задаём — БД заполнит сама
+                    Password = dialog.Password                  
                 };
 
                 _userService.AddUser(newUser);  // передаём объект целиком
@@ -188,9 +178,6 @@ namespace HomeSocialNetwork
                 StatusText.Text = "Пользователь добавлен";
             }
         }
-
-
-
         // Кнопка «Найти»
         private void FindUser_Click(object sender, RoutedEventArgs e)
         {

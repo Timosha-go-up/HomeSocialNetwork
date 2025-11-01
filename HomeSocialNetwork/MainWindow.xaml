@@ -1,226 +1,257 @@
 ﻿<Window x:Class="HomeSocialNetwork.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="HomeSocialNetwork"
-        Height="700" Width="1000"
-        WindowStyle="None"
-      ResizeMode="NoResize"
-
-
-        Background="DarkGray"
-         AllowsTransparency="True" 
-        FontFamily="Calibri" FontSize="14">
-    <Grid Background="#FF615454">
+          xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+          Title="HomeSocialNetwork"
+          Height="700" Width="1000"
+          WindowStyle="None"
+          ResizeMode="NoResize"
+          Background="DarkGray"
+          AllowsTransparency="True" 
+          FontFamily="Calibri" FontSize="14" BorderThickness="3"  BorderBrush="Black" Margin="0,0,-4,0" MouseDown="UsersGrid_MouseDown" >
+    <Grid>
+        <Grid.Background>
+            <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                <GradientStop Color="#FF485348"/>
+                <GradientStop Color="#FFBFE0BD" Offset="1" />
+            </LinearGradientBrush>
+        </Grid.Background>
         <Grid.RowDefinitions>
-            <RowDefinition Height="50" />
+            <RowDefinition Height="40" />
             <!-- Шапка -->
             <RowDefinition Height="190"/>
-            <!-- Основная область -->
             <RowDefinition Height="*"/>
-            <!-- Дополнительная панель -->
-            <RowDefinition Height="200"/>
-            <!-- Таблица пользователей -->
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="180"/>
             <RowDefinition Height="40"/>
             <!-- Статус-бар -->
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="150"/>
-            <!-- Меню -->
             <ColumnDefinition Width="700"/>
-            <!-- Контент -->
             <ColumnDefinition Width="100"/>
-            <!-- Боковая панель -->
-            <ColumnDefinition Width="50"/>
-            <!-- Растягивающийся столбец -->
+            <ColumnDefinition Width="40"/>
         </Grid.ColumnDefinitions>
-
         <!-- 1. Шапка (строка 0) -->
-        <Border Grid.Row="0" Grid.ColumnSpan="4" Background="#FF29443B" Padding="10,0"  MouseDown="UsersGrid_MouseDown">
+        <Border Grid.Row="0"
+                Grid.ColumnSpan="4"
+               
+                Margin="15,0,-4,0" >
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="200"/>
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="50" />
+                    <ColumnDefinition Width="40" />
                 </Grid.ColumnDefinitions>
-
-
-
                 <!-- Логотип и название -->
-                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-
-                    <TextBlock Text="HomeSocialNetwork" FontSize="20" FontFamily="Arial Rounded MT Bold" 
-                               Foreground="White"  />
+                <StackPanel Grid.Column="0"
+                            Orientation="Horizontal" 
+                            VerticalAlignment="Center">
+                    <TextBlock Text="HomeSocialNetwork" 
+                               FontSize="20" FontFamily="Arial
+                               Rounded MT Bold" 
+                               Foreground="White"/>
                 </StackPanel>
-
-
                 <!-- Кнопка закрытия -->
+                <Button Grid.Column="3"
+                        Content="×"
+                        Width="38"
+                        Height="38"                                              
+                        FontWeight="Bold"
+                        FontSize="24"
+                        Click="CloseButton_Click" Background="#FF4E594E" BorderThickness="0"/>
             </Grid>
         </Border>
-        <!-- LogPanel: занимает столбец 1–3 во втором ряду -->
-        <Grid Grid.Row="1" 
-      Grid.Column="1" 
-      Grid.ColumnSpan="3"
-      Margin="5,5,5,5"
-      Background="#FF312E2E"
-      x:Name="LogPanel">
-            <Grid.RowDefinitions>
-                <RowDefinition />
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions >
-                <ColumnDefinition  />
+        <!-- LogPanel: панель для отображения логов -->
+        <Grid x:Name="LogPanel" 
+              Grid.Row="1"
+              Grid.Column="1"
+              Grid.ColumnSpan="2"
+              Margin="5,5,5,5" 
+              Background="#FF312E2E">
+            <Grid.ColumnDefinitions>
             </Grid.ColumnDefinitions>
 
-            <!-- Текстовое поле для логов -->
-            <TextBlock x:Name="LogDisplay"
-               TextWrapping="Wrap"
-               FontSize="16"
-               Foreground="LimeGreen"
-               Background="#FF312E2E"
-                       Margin="10,5,5,5"
-             />
-
-
-
-
-
+            <ScrollViewer Grid.Row="1"
+                          Grid.Column="1"
+                          Grid.ColumnSpan="4"
+                          VerticalScrollBarVisibility="Auto"                 
+                          Padding="5">
+                <TextBlock x:Name="LogDisplay"
+                       TextWrapping="Wrap"          
+                       FontSize="16"                
+                       Foreground="LimeGreen"      
+                       Background="#FF312E2E"        
+                       Margin="5,5,5,5"/>
+            </ScrollViewer>
         </Grid>
         <!-- 2. Меню (столбец 0, строки 1–3) -->
-        <StackPanel Grid.Row="1" Grid.RowSpan="3" Grid.Column="0" Margin="5,5,5,5" Orientation="Vertical">
-            <Button Content="Menu" Height="45" FontWeight="Bold" Foreground="#FF007E83" Background= "#FF615454" />
-            <Button Content="Добавить" Height="45" FontWeight="Bold" Foreground="#FF007E83" Background="#FF615454" Click ="AddUser_Click"/>
-            <Button Content="Найти" Height="45" FontWeight="Bold" Foreground="#FF007E83" Background="#FF615454" Click="FindUser_Click"/>
-            <Button Content="Обновить" Height="45" FontWeight="Bold" Foreground="#FF007E83" Background="#FF615454" Click="Refresh_Click"/>
+        <StackPanel Grid.Row="1"
+                    Grid.RowSpan="3"
+                    Grid.Column="0"
+                    Margin="5,5,5,5"
+                    Orientation="Vertical">
+            <Button Content="Menu"
+                    Height="45" 
+                    FontWeight="Bold" 
+                    Background= 
+                    "#FF465445" />
+            <Button Content="Добавить"
+                    Height="45" FontWeight="Bold"                    
+                    Background="#FF465445"
+                    Click ="AddUser_Click"/>
+            <Button Content="Найти"
+                    Height="45"
+                    FontWeight="Bold"                     
+                    Background="#FF465445"
+                    Click="FindUser_Click"/>
+            <Button Content="Обновить"
+                    Height="45"                  
+                    Background="#FF465445"
+                    Click="Refresh_Click" FontWeight="Bold"/>
         </StackPanel>
-
         <!-- 3. Основная область (столбец 1, строка 1) -->
-        <Grid Grid.Row="1" Grid.Column="0" Margin="5,5,5,5">
-            <!-- Ваш контент здесь -->
+        <Grid Grid.Row="3" Grid.Column="0"  Grid.ColumnSpan="4" >
+            <!-- Определение колонок -->
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="60"/>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0"
+                       Text="  ID"
+                       FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="Black"               
+                       VerticalAlignment="Top"/>
+            <!-- Заголовок "Имя" в строке 0, колонке 1 -->
+            <TextBlock Grid.Column="1"                       
+                       Text="Имя"
+                       FontWeight="SemiBold"
+                       FontSize="16"
+                       Foreground="Black"               
+                       VerticalAlignment="Top"/>
+            <!-- Заголовок "Фамилия" в строке 0, колонке 2 -->
+            <TextBlock Grid.Row="0"
+                       Grid.Column="2"
+                       Text="Фамилия"
+                       FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="Black"               
+                       VerticalAlignment="Top" />
+            <TextBlock  Grid.Column="3"
+                       Text="Телефон" 
+                       FontSize="16"
+                        FontWeight="SemiBold"
+                       Foreground="Black"
+                       VerticalAlignment="Top"/>
+            <TextBlock Grid.Column="4" 
+                       Text="Email"
+                       FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="Black"
+                       VerticalAlignment="Top"/>
+            <TextBlock 
+                       Grid.Column="5"
+                       Text="Пароль"
+                       FontSize="16"
+                FontWeight="SemiBold"
+                       Foreground="Black"
+                       VerticalAlignment="Top"/>
+            <TextBlock Grid.Column="6"
+                       Text="Дата создания"
+                       FontSize="16"
+                       Foreground="Black"
+                       FontWeight="SemiBold"
+                       VerticalAlignment="Top"/>
         </Grid>
+        <!-- Таблица пользователей: предпоследний ряд (Row=3), колонки 1–3 -->
+        <ScrollViewer Grid.Row="4"
+                      Grid.Column="0"
+                      Grid.ColumnSpan="4"
+                      VerticalScrollBarVisibility="Auto"                 
+                      Padding="5">
+            <ItemsControl ItemsSource="{Binding Users}"
+                      HorizontalAlignment="Stretch">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Margin="1,1,1,1" >
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="50"/>
+                                <ColumnDefinition Width="150"/>
+                                <ColumnDefinition Width="150"/>
+                                <ColumnDefinition Width="150"/>
+                                <ColumnDefinition Width="150"/>
+                                <ColumnDefinition Width="150"/>
+                                <ColumnDefinition Width="*"/>
+                                <!-- Другие колонки -->
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="35">
+                                </RowDefinition >
+                            </Grid.RowDefinitions>
+                            <Label Grid.Column="0"  Content="{Binding Id}"
+                                   FontSize="16"
+                                   BorderBrush="Black"  
+                                   FontWeight="SemiBold"
+                                   BorderThickness="0.5"
+                                   VerticalContentAlignment="Center"/>
+                            <Label Grid.Column="1" Content="{Binding FirstName}"
+                                   FontSize="16"
+                                   BorderBrush="Black"        
+                                   BorderThickness="0.5"
+                                   FontWeight="SemiBold"/>
 
-        <!-- 4. Таблица пользователей (столбец 1–3, строка 3) -->
-
-        <DataGrid Grid.Row="3"
-                  Grid.ColumnSpan="4"
-                  x:Name="UsersGrid"
-                  AutoGenerateColumns="False"
-                  CanUserAddRows="False"
-                  IsReadOnly="True"
-                  VerticalScrollBarVisibility="Auto"
-                  HorizontalScrollBarVisibility="Auto"
-                  FontSize="14" 
-                  FontFamily="Global Sans Serif"
-                  Foreground="#FF007E83"
-                  FontWeight="Bold"
-                  Background="#FF615454" 
-                  BorderBrush="Black"
-                  Margin="5,5,5,5"
-                    >
-           
-
-            <DataGrid.Columns>
-                <!-- ID -->
-                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50">
-                    <DataGridTextColumn.CellStyle>
-                        <Style TargetType="DataGridCell">
-                            <Setter Property="Background" Value="#FFA9A8A8"/>
-                            <Setter Property="BorderThickness" Value="0,0,1,1"/>
-                        </Style>
-                    </DataGridTextColumn.CellStyle>
-                </DataGridTextColumn>
-
-                <!-- First Name -->
-                <DataGridTextColumn Header="First Name" Binding="{Binding FirstName}" Width="140">
-                    <DataGridTextColumn.CellStyle>
-                        <Style TargetType="DataGridCell">
-                            <Setter Property="Background" Value="#FFA9A8A8"/>
-                            <Setter Property="BorderThickness" Value="0,0,1,1"/>
-                        </Style>
-                    </DataGridTextColumn.CellStyle>
-                    <DataGridTextColumn.ElementStyle>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="Foreground" Value="#FF007E83"/>
-                            <Setter Property="FontWeight" Value="SemiBold"/>
-                        </Style>
-                    </DataGridTextColumn.ElementStyle>
-                </DataGridTextColumn>
-                <DataGridTextColumn Header="Last Name" Binding="{Binding LastName}" Width="140">
-                    <DataGridTextColumn.CellStyle>
-                        <Style TargetType="DataGridCell">
-                            <Setter Property="Background" Value="#FFA9A8A8"/>
-
-                            <Setter Property="BorderThickness" Value="0,0,1,1"/>
-                        </Style>
-                    </DataGridTextColumn.CellStyle>
-                </DataGridTextColumn>
-
-
-                <DataGridTextColumn Header="Phone Number" Binding="{Binding PhoneNumber}" Width="140">
-                    <DataGridTextColumn.CellStyle>
-                        <Style TargetType="DataGridCell">
-                            <Setter Property="Background" Value="#FFA9A8A8"/>
-
-                            <Setter Property="BorderThickness" Value="0,0,1,1"/>
-                        </Style>
-                    </DataGridTextColumn.CellStyle>
-                </DataGridTextColumn>
-
-
-                <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="180">
-                    <DataGridTextColumn.CellStyle>
-                        <Style TargetType="DataGridCell">
-                            <Setter Property="Background" Value="#FFA9A8A8"/>
-
-                            <Setter Property="BorderThickness" Value="0,0,1,1"/>
-                        </Style>
-                    </DataGridTextColumn.CellStyle>
-                </DataGridTextColumn>
-
-
-                <DataGridTextColumn Header="Password" Binding="{Binding Password}" Width="140">
-                    <DataGridTextColumn.CellStyle>
-                        <Style TargetType="DataGridCell">
-                            <Setter Property="Background" Value="#FFA9A8A8"/>
-
-                            <Setter Property="BorderThickness" Value="0,0,1,1"/>
-                        </Style>
-                    </DataGridTextColumn.CellStyle>
-                </DataGridTextColumn>
-
-
-                <DataGridTextColumn Header="Дата создания" Binding="{Binding CreatedAt, StringFormat=\{0:dd.MM.yyyy HH:mm\}}" Width="*">
-                    <DataGridTextColumn.CellStyle>
-                        <Style TargetType="DataGridCell">
-                            <Setter Property="Background" Value="#FFA9A8A8"/>
-
-                            <Setter Property="BorderThickness" Value="0,0,1,1"/>
-                        </Style>
-                    </DataGridTextColumn.CellStyle>
-                    <DataGridTextColumn.ElementStyle>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="Foreground" Value="#FF007E83"/>
-
-
-                        </Style>
-                    </DataGridTextColumn.ElementStyle>
-                </DataGridTextColumn>
-            </DataGrid.Columns>
-        </DataGrid>
+                            <Label Grid.Column="2"
+                                   Content="{Binding LastName}" FontSize="16"
+                                   BorderBrush="Black"
+                                   FontWeight="SemiBold"   
+                                   BorderThickness="0.5"  
+                                   VerticalContentAlignment="Center"/>
+                            <Label Grid.Column="3"
+                                   Content="{Binding PhoneNumber}"
+                                   FontSize="16" 
+                                   BorderBrush="Black"        
+                                   BorderThickness="0.5"
+                                   FontWeight="SemiBold"
+                                   VerticalContentAlignment="Center"/>
+                            <!-- First Name -->
+                            <Label Grid.Column="4" Content="{Binding Email}"
+                                   FontSize="16"  
+                                   BorderBrush="Black"        
+                                   BorderThickness="0.5"
+                                   FontWeight="SemiBold"/>
+                            <!-- First Name -->
+                            <Label Grid.Column="5" Content="{Binding Password}"
+                                   FontSize="16"
+                                   BorderBrush="Black"        
+                                   BorderThickness="0.5"
+                                   FontWeight="SemiBold" />
+                            <!-- First Name -->
+                            <Label Grid.Column="6" 
+                                   Content="{Binding CreatedAt, StringFormat=\{0:dd.MM.yyyy HH:mm\}}"
+                                   FontSize="16"
+                                   BorderBrush="Black"        
+                                   BorderThickness="0.5"
+                                   FontWeight="SemiBold"/>
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
 
         <!-- 5. Статус-бар (строка 4, весь width) -->
-        <StatusBar Grid.Row="4" Grid.ColumnSpan="3" Background="#FF615454" Margin="0,0,0,0"   FontSize="14">
-            <TextBlock Name="StatusText" Text="Готов" Foreground="White" Background="#FF615454" FontWeight="Bold"/>
+        <StatusBar Grid.Row="5"
+                   Grid.ColumnSpan="4"                   
+                   FontSize="14"
+                   Background="#FFC3D1C3" Margin="0,0,-4,0">
+            <TextBlock Name="StatusText"
+                       Text="Готов"
+                       FontWeight="Bold"/>
         </StatusBar>
-        <Button Grid.Column="3"
-            Content="×"
-            Width="49"
-            Height="49"
-            Background="#FF29443B" 
-            BorderThickness="0"  
-            Foreground="#333333" 
-            FontWeight="Bold"
-            FontSize="24"
-            Click="CloseButton_Click" Margin="0,0,0,0" >
-        </Button>
     </Grid>
 </Window>
 
