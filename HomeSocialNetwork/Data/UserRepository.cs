@@ -1,11 +1,12 @@
 ﻿using Dapper;
+using HomeSocialNetwork.Helpers;
+using HomeSocialNetwork.Models;
 using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
-using System.Text;
-using HomeSocialNetwork.Helpers;
+using System.Diagnostics;
 using System.IO;
-using HomeSocialNetwork.Models;
+using System.Text;
 namespace HomeSocialNetwork.Data
 {
     public class UserRepository
@@ -30,14 +31,16 @@ namespace HomeSocialNetwork.Data
                   VALUES (@FirstName, @LastName, @PhoneNumber, @Email, @Password)",
                     user);
             }
-            catch (SqliteException ex) when (ex.SqliteErrorCode == 19) // UNIQUE constraint
+            catch (SqliteException ex) when (ex.SqliteErrorCode == 19)
             {
-                throw new InvalidOperationException(
-                    $"Email '{user.Email}' уже зарегистрирован.");
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Ошибка базы данных: {ex.Message}", ex);
+                // Проверяем, что в тексте ошибки упоминается Email
+                if (ex.Message.Contains("Email", StringComparison.OrdinalIgnoreCase) ||
+                    ex.Message.Contains("users.Email", StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new InvalidOperationException($"Email '{user.Email}' уже зарегистрирован.");
+                }
+                // Если ошибка по другому полю — перебрасываем исходное исключение
+                throw;
             }
         }
         public List<User> GetAll()
@@ -46,6 +49,8 @@ namespace HomeSocialNetwork.Data
             return connection.Query<User>(
                 @"SELECT Id, FirstName, LastName, PhoneNumber, Email, Password, CreatedAt 
               FROM users ORDER BY Id").ToList();
+
+           
         }
         public User? GetByEmail(string email)
         {

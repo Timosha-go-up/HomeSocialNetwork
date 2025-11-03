@@ -10,7 +10,11 @@ namespace HomeSocialNetwork.Services
 
         public List<User> GetAllUsers()
         {
-            return _repo.GetAll();
+            var users = _repo.GetAll();
+
+         
+
+            return users;
         }
 
         public void AddUser(User user)

@@ -1,6 +1,7 @@
 ﻿using HomeSocialNetwork.Data;
 using HomeSocialNetwork.Models;
 using HomeSocialNetwork.Services;
+using Microsoft.Data.Sqlite;
 using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -20,34 +21,46 @@ namespace HomeSocialNetwork
         private bool _isProcessing = false;       
         private DispatcherTimer _logHideTimer;
         private Grid _logPanel; // Ссылка на контейнер логов из XAML
-       
-        
-        
+
+
+
         public MainWindow()
         {
-
-            InitializeComponent();          
-            WriteLog("Log message");
-            var userRepository = new UserRepository(WriteLog);
-            _userService = new UserService(userRepository);
-
-            System.Diagnostics.Debug.WriteLine($"MainWindow запущен. PID: {Process.GetCurrentProcess().Id}");
-            WriteLog("Приложение запущено. PID: " + Process.GetCurrentProcess().Id);
-            WriteLog("Таймер скрытия панели логов запущен (интервал: 10 сек).");
-            _logPanel = LogPanel;
-
-            if (_logPanel == null)
+            try
             {
-                throw new Exception("LogPanel не найден! Проверьте x:Name в XAML.");
+                InitializeComponent();
+
+                //WriteLog("Приложение запущено. PID: " + Process.GetCurrentProcess().Id);
+                //WriteLog("Таймер скрытия панели логов запущен (интервал: 10 сек).");
+
+              var userRepository = new UserRepository();
+                _userService = new UserService(userRepository); LoadUsers();
+
+                //_logPanel = LogPanel;
+                //if (_logPanel == null)
+                //{
+                //    Debug.WriteLine("LogPanel не найден в XAML!");
+                //}
+
+                //_logHideTimer = new DispatcherTimer();
+                //_logHideTimer.Interval = TimeSpan.FromSeconds(10);
+                //_logHideTimer.Tick += OnLogHideTimerTick;
+                //this.Closed += (s, e) => _logHideTimer.Stop();
+
+               // StartLogHideTimer();
+
+               
+               
             }
-
-            _logHideTimer = new DispatcherTimer();
-            _logHideTimer.Interval = TimeSpan.FromSeconds(40);
-            _logHideTimer.Tick += OnLogHideTimerTick;
-            
-            StartLogHideTimer();  // Запускаем таймер ПОСЛЕ записи в лог
-
-            LoadUsers();
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Критическая ошибка при запуске: {ex.Message}",
+                    "Ошибка",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+                Close();
+            }
         }
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
@@ -138,46 +151,78 @@ namespace HomeSocialNetwork
         // Загрузка списка пользователей
         private void LoadUsers()
         {
+
+            
+
+
+
             try
             {
-                var users = _userService.GetAllUsers();
 
-                // Главное: DataContext должен содержать свойство Users
-                DataContext = new
-                {
-                    Users = new ObservableCollection<User>(users)  // Обязательно ObservableCollection!
-                };
+
+
+                var users =  _userService.GetAllUsers();
+
+                DataContext = new { Users = new ObservableCollection<User>(users) };
+
+               
+
                 StatusText.Text = $"Загружено {users.Count} пользователей";
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка загрузки: {ex.Message}");
-                StatusText.Text = "Ошибка";
+                StatusText.Text = $"Ошибка загрузки: {ex.Message}";
             }
         }
 
+
+
         // Кнопка «Добавить»
-        private void AddUser_Click(object sender, RoutedEventArgs e)
+
+
+
+        private  void AddUser_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new AddUserDialog();
             dialog.Owner = this;
 
-            if (dialog.ShowDialog() == true)
-            {
-                var newUser = new User
-                {
-                    FirstName = dialog.FirstName, 
-                    LastName = dialog.LastName,    
-                    PhoneNumber = dialog.PhoneNumber, 
-                    Email = dialog.Email,
-                    Password = dialog.Password                  
-                };
+            if (dialog.ShowDialog() != true) return;
 
-                _userService.AddUser(newUser);  // передаём объект целиком
-                LoadUsers();
+            var newUser = new User
+            {
+                FirstName = dialog.FirstName,
+                LastName = dialog.LastName,
+                PhoneNumber = dialog.PhoneNumber,
+                Email = dialog.Email,
+                Password = dialog.Password
+            };
+
+            var button = (Button)sender;
+            button.IsEnabled = false;
+
+            try
+            {
+                // Выполняем синхронный метод в фоновом потоке
+               
+
+                // Если LoadUsers тоже может быть долгим
                 StatusText.Text = "Пользователь добавлен";
             }
+            catch (InvalidOperationException ex)
+            {
+                MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Не удалось добавить пользователя: {ex.Message}", "Критическая ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                button.IsEnabled = true;
+            }
         }
+
+
         // Кнопка «Найти»
         private void FindUser_Click(object sender, RoutedEventArgs e)
         {
@@ -185,10 +230,23 @@ namespace HomeSocialNetwork
         }
 
         // Кнопка «Обновить»
-        private void Refresh_Click(object sender, RoutedEventArgs e)
+        private  void Refresh_Click(object sender, RoutedEventArgs e)
         {
-            LoadUsers();
+            // 1. Показываем статус «Обновление...»
+            StatusText.Text = "Обновление...";
+
+            // 2. Загружаем данные (асинхронно)
+           
+
+            // 3. Ждём 2 секунды перед финальным сообщением
+           
+
+            // 4. Выводим финальное сообщение
             StatusText.Text = "Список обновлён";
+
+            LoadUsers();
+
+
         }
     }
-}
+    }
