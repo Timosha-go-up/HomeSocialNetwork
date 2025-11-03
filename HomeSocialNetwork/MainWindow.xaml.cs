@@ -4,12 +4,16 @@ using HomeSocialNetwork.Services;
 using Microsoft.Data.Sqlite;
 using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
-using System.Threading.Tasks;
+using HomeSocialNetwork.ViewModels;
+
+
 namespace HomeSocialNetwork
 {
     /// <summary>
@@ -21,8 +25,9 @@ namespace HomeSocialNetwork
         private ConcurrentQueue<string> _logQueue = new();
         private bool _isProcessing = false;       
         private DispatcherTimer _logHideTimer;
-        private Grid _logPanel; // Ссылка на контейнер логов из XAML
-
+        private Grid _logPanel;
+        public bool HideScrollViewer { get;  set; }
+        private MainViewModel _viewModel;
 
 
         public MainWindow()
@@ -30,29 +35,31 @@ namespace HomeSocialNetwork
             try
             {
                 InitializeComponent();
-                
+
+                _viewModel = new MainViewModel();
+                DataContext = _viewModel; 
                 _logHideTimer = new DispatcherTimer();
-                _logHideTimer.Interval = TimeSpan.FromSeconds(10);
-                _logHideTimer.Tick += OnLogHideTimerTick;
-                this.Closed += (s, e) => _logHideTimer.Stop();
+               // _logHideTimer.Interval = TimeSpan.FromSeconds(15);
 
-                WriteLog("Приложение запущено. PID: " + Process.GetCurrentProcess().Id);
-                WriteLog("Таймер скрытия панели логов запущен (интервал: 10 сек).");
+               // _logHideTimer.Tick += OnLogHideTimerTick;
+               // this.Closed += (s, e) => _logHideTimer.Stop();
+                UserRepository repo = new UserRepository(); 
+                _userService = new UserService(repo);
+                _viewModel.LoadUsers(_userService);
 
-                var userRepository = new UserRepository();
-                _userService = new UserService(userRepository); LoadUsers();
+               // WriteLog("Приложение запущено. PID: " + Process.GetCurrentProcess().Id);
+               // WriteLog("Таймер скрытия панели логов запущен (интервал: 10 сек).");
+
+              
 
                 _logPanel = LogPanel;
+
                 if (_logPanel == null)
                 {
                     Debug.WriteLine("LogPanel не найден в XAML!");
                 }
-
                
-
                 StartLogHideTimer();
-
-
             }
             catch (Exception ex)
             {
@@ -63,7 +70,17 @@ namespace HomeSocialNetwork
                     MessageBoxImage.Error);
                 Close();
             }
+
+
         }
+
+
+
+        
+
+
+
+
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
                           this.Close();            
@@ -117,7 +134,7 @@ namespace HomeSocialNetwork
 
             try
             {
-                while (_logQueue.TryDequeue(out string message))
+                while (_logQueue.TryDequeue(out string? message))
                 {
                     string timestamp = $"{DateTime.Now:HH:mm:ss} › ";
                     string fullText = timestamp + message + "\n";
@@ -151,37 +168,9 @@ namespace HomeSocialNetwork
             }
         }
         // Загрузка списка пользователей
-        private void LoadUsers()
-        {
-
-            
-
-
-
-            try
-            {
-
-
-
-                var users =  _userService.GetAllUsers();
-
-                DataContext = new { Users = new ObservableCollection<User>(users) };
-
-               
-
-                StatusText.Text = $"Загружено {users.Count} пользователей";
-            }
-            catch (Exception ex)
-            {
-                StatusText.Text = $"Ошибка загрузки: {ex.Message}";
-            }
-        }
-
-
+       
 
         // Кнопка «Добавить»
-
-
 
         private  void AddUser_Click(object sender, RoutedEventArgs e)
         {
@@ -209,7 +198,7 @@ namespace HomeSocialNetwork
                 
                 StatusText.Text = "Пользователь добавлен";
 
-                LoadUsers();
+                
 
             }
             catch (InvalidOperationException ex)
@@ -244,7 +233,7 @@ namespace HomeSocialNetwork
             // 4. Выводим финальное сообщение
             StatusText.Text = "Список обновлён";
 
-            LoadUsers();
+            
 
 
         }
