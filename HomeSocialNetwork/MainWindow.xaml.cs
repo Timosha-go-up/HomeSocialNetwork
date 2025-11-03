@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
+using System.Threading.Tasks;
 namespace HomeSocialNetwork
 {
     /// <summary>
@@ -29,28 +30,29 @@ namespace HomeSocialNetwork
             try
             {
                 InitializeComponent();
+                
+                _logHideTimer = new DispatcherTimer();
+                _logHideTimer.Interval = TimeSpan.FromSeconds(10);
+                _logHideTimer.Tick += OnLogHideTimerTick;
+                this.Closed += (s, e) => _logHideTimer.Stop();
 
-                //WriteLog("Приложение запущено. PID: " + Process.GetCurrentProcess().Id);
-                //WriteLog("Таймер скрытия панели логов запущен (интервал: 10 сек).");
+                WriteLog("Приложение запущено. PID: " + Process.GetCurrentProcess().Id);
+                WriteLog("Таймер скрытия панели логов запущен (интервал: 10 сек).");
 
-              var userRepository = new UserRepository();
+                var userRepository = new UserRepository();
                 _userService = new UserService(userRepository); LoadUsers();
 
-                //_logPanel = LogPanel;
-                //if (_logPanel == null)
-                //{
-                //    Debug.WriteLine("LogPanel не найден в XAML!");
-                //}
-
-                //_logHideTimer = new DispatcherTimer();
-                //_logHideTimer.Interval = TimeSpan.FromSeconds(10);
-                //_logHideTimer.Tick += OnLogHideTimerTick;
-                //this.Closed += (s, e) => _logHideTimer.Stop();
-
-               // StartLogHideTimer();
+                _logPanel = LogPanel;
+                if (_logPanel == null)
+                {
+                    Debug.WriteLine("LogPanel не найден в XAML!");
+                }
 
                
-               
+
+                StartLogHideTimer();
+
+
             }
             catch (Exception ex)
             {
@@ -202,11 +204,13 @@ namespace HomeSocialNetwork
 
             try
             {
-                // Выполняем синхронный метод в фоновом потоке
-               
-
-                // Если LoadUsers тоже может быть долгим
+                 _userService.AddUser(newUser);
+              
+                
                 StatusText.Text = "Пользователь добавлен";
+
+                LoadUsers();
+
             }
             catch (InvalidOperationException ex)
             {
@@ -230,16 +234,12 @@ namespace HomeSocialNetwork
         }
 
         // Кнопка «Обновить»
-        private  void Refresh_Click(object sender, RoutedEventArgs e)
+        private async void Refresh_Click(object sender, RoutedEventArgs e)
         {
-            // 1. Показываем статус «Обновление...»
+            
             StatusText.Text = "Обновление...";
 
-            // 2. Загружаем данные (асинхронно)
-           
-
-            // 3. Ждём 2 секунды перед финальным сообщением
-           
+            await Task.Delay(2000);
 
             // 4. Выводим финальное сообщение
             StatusText.Text = "Список обновлён";
