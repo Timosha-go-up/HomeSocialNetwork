@@ -10,6 +10,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Input;
 
 namespace HomeSocialNetwork.ViewModels
 {
@@ -17,20 +18,18 @@ namespace HomeSocialNetwork.ViewModels
 
     public class MainViewModel : INotifyPropertyChanged
     {
-        private ObservableCollection<User> _users;
+        private ObservableCollection<User> _users = new ObservableCollection<User>();
 
-
-        
-
-        public ObservableCollection<User> Users                 
+        public ObservableCollection<User> Users
         {
             get => _users;
             set
             {
-                _users = value;
-                OnPropertyChanged(nameof(Users)); // Указываем имя свойства
-            }
+                if (_users == value) return; // Оптимизация: избегаем лишних уведомлений
 
+                _users = value ?? new ObservableCollection<User>(); // Защита от null
+                OnPropertyChanged(nameof(Users));
+            }
         }
 
         private Visibility _scrollViewerVisibility = Visibility.Visible;
@@ -46,7 +45,10 @@ namespace HomeSocialNetwork.ViewModels
         }
 
 
-
+        public void ShowScrollViewer()
+        {
+            ScrollViewerVisibility = Visibility.Visible;
+        }
 
 
         // 2. Реализация интерфейса INotifyPropertyChanged
@@ -59,24 +61,33 @@ namespace HomeSocialNetwork.ViewModels
 
 
 
-        // Свойство для статуса (можно привязать к TextBlock)
-        private string _statusText;
-        public string StatusText
+        private bool _hideText = false;
+        public bool HideText
         {
-            get => _statusText;
-
+            get => _hideText;
             set
             {
-                string current = _hideText.ToString();
-                string newValue = value?.ToString() ?? "null";
-                Debug.WriteLine($"SETTER: {current} → {newValue}");
-                
+                Debug.WriteLine($"SETTER: {_hideText} → {value}");
+                _hideText = value;
                 OnPropertyChanged(nameof(HideText));
             }
         }
 
+        private string _statusText = string.Empty;
+        public string StatusText
+        {
+            get => _statusText;
+            set
+            {
+                if (_statusText == value) return;
+                Debug.WriteLine($"SETTER: {_statusText} → {value}");
+                _statusText = value ?? string.Empty;
+                OnPropertyChanged(nameof(StatusText));
+            }
+        }
 
-      
+
+
 
 
 
@@ -95,19 +106,7 @@ namespace HomeSocialNetwork.ViewModels
         }
 
 
-        private bool _hideText = false; // Начальное значение
-        public bool HideText
-        {
-            get => _hideText;
-
-            set
-            {
-                Debug.WriteLine($"SETTER: {_hideText} → {value}");
-                _hideText = value;
-                OnPropertyChanged(nameof(HideText));
-            }
-
-        }
+        
         
     }
 

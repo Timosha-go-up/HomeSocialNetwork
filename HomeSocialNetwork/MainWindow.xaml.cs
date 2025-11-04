@@ -1,6 +1,10 @@
-﻿using HomeSocialNetwork.Data;
+﻿using HomeSocialNetwork.Controls;
+using HomeSocialNetwork.Data;
+using HomeSocialNetwork.Helpers;
 using HomeSocialNetwork.Models;
 using HomeSocialNetwork.Services;
+using HomeSocialNetwork.UiHelpers;
+using HomeSocialNetwork.ViewModels;
 using Microsoft.Data.Sqlite;
 using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
@@ -11,7 +15,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
-using HomeSocialNetwork.ViewModels;
 
 
 namespace HomeSocialNetwork
@@ -23,43 +26,38 @@ namespace HomeSocialNetwork
     {        
         private UserService _userService;
         private ConcurrentQueue<string> _logQueue = new();
-        private bool _isProcessing = false;       
-        private DispatcherTimer _logHideTimer;
-        private Grid _logPanel;
-        public bool HideScrollViewer { get;  set; }
-        private MainViewModel _viewModel;
-
-
+        private LogManager _logManager;
+        private DispatcherTimer _logHideTimer;      
+            
         public MainWindow()
         {
             try
             {
                 InitializeComponent();
+                
+                  // 1. Создаём ViewModel
+                var mainVm = new MainViewModel();
 
-                _viewModel = new MainViewModel();
-                DataContext = _viewModel; 
-                _logHideTimer = new DispatcherTimer();
-               // _logHideTimer.Interval = TimeSpan.FromSeconds(15);
-
-               // _logHideTimer.Tick += OnLogHideTimerTick;
-               // this.Closed += (s, e) => _logHideTimer.Stop();
-                UserRepository repo = new UserRepository(); 
-                _userService = new UserService(repo);
-                _viewModel.LoadUsers(_userService);
-
-               // WriteLog("Приложение запущено. PID: " + Process.GetCurrentProcess().Id);
-               // WriteLog("Таймер скрытия панели логов запущен (интервал: 10 сек).");
-
-              
-
-                _logPanel = LogPanel;
-
-                if (_logPanel == null)
+                // 2. Устанавливаем DataContext окна
+                DataContext = mainVm;                                           
+               _logManager = new LogManager(LogDisplay, TimeSpan.FromSeconds(10));
+             
+                _logManager.OnLogsHidden += () =>
                 {
-                    Debug.WriteLine("LogPanel не найден в XAML!");
-                }
-               
-                StartLogHideTimer();
+                    LogPanel.Visibility = Visibility.Collapsed;
+
+                };
+
+                var logger = new GenericLogger(_logManager.WriteLog);
+
+                logger.Log("Application started. PID: " + Process.GetCurrentProcess().Id);
+
+                var repo = new UserRepository(logger);  
+                logger.Log("Все логи выведены  панель логов скроется через 10 секунд");
+
+                 var userService = new UserService(repo);
+                mainVm.LoadUsers(userService);
+            
             }
             catch (Exception ex)
             {
@@ -70,93 +68,36 @@ namespace HomeSocialNetwork
                     MessageBoxImage.Error);
                 Close();
             }
-
-
         }
 
+        private void ShowScrollViewerButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is MainViewModel vm)
+            {
+                vm.ShowScrollViewer(); // Вызываем метод из ViewModel
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("DataContext не является MainViewModel!");
+            }
 
-
-        
-
-
-
+        }
+        private void ShowUser_Click(object sender, MouseButtonEventArgs e)
+        {
+            if (DataContext is MainViewModel vm)
+            {
+                vm.ScrollViewerVisibility = Visibility.Visible;
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine
+                    ("DataContext не является MainViewModel. Проверьте привязку в XAML.");
+            }
+        }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
-                          this.Close();            
-        }
-        private async void OnLogHideTimerTick(object sender, EventArgs e)
-        {
-            try
-            {
-                // Ждём, пока завершится обработка очереди логов
-                await WaitForLogProcessingCompletion();
-                _logHideTimer.Stop();
-                _logPanel.Visibility = Visibility.Collapsed;
-                WriteLog("Таймер сработал: панель логов скрыта.");
-            }
-            catch (Exception ex)
-            {
-                WriteLog($"Ошибка при скрытии панели логов: {ex.Message}");
-            }
-        }
-
-        // Ждём завершения обработки очереди логов
-        private async Task WaitForLogProcessingCompletion()
-        {
-            while (_isProcessing)
-            {
-                await Task.Delay(1000); 
-            }
-        }
-
-        // Запускаем/перезапускаем таймер
-        private void StartLogHideTimer()
-        {
-            _logHideTimer.Stop();
-            _logHideTimer.Start();
-        }
-
-
-        private void WriteLog(string message)
-        {
-            _logQueue.Enqueue(message);
-            ProcessLogQueue(); 
-        }
-
-        private async void ProcessLogQueue()
-        {
-           
-            if (_isProcessing)
-                return;
-
-            _isProcessing = true;
-
-            try
-            {
-                while (_logQueue.TryDequeue(out string? message))
-                {
-                    string timestamp = $"{DateTime.Now:HH:mm:ss} › ";
-                    string fullText = timestamp + message + "\n";
-
-                    // Посимвольно добавляем текст
-                    foreach (char c in fullText)
-                    {
-                        await Dispatcher.InvokeAsync(() =>
-                        {
-                            LogDisplay.Text += c;
-                            if (LogDisplay.Parent is ScrollViewer sv)
-                                sv.ScrollToEnd();
-                        });
-
-                        await Task.Delay(30); 
-                    }
-                }
-            }
-            finally
-            {
-                _isProcessing = false; 
-            }
+            this.Close();
         }
 
         private void UsersGrid_MouseDown(object sender, MouseButtonEventArgs e)
@@ -167,11 +108,7 @@ namespace HomeSocialNetwork
                 this.DragMove();
             }
         }
-        // Загрузка списка пользователей
-       
-
-        // Кнопка «Добавить»
-
+        
         private  void AddUser_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new AddUserDialog();
@@ -194,12 +131,8 @@ namespace HomeSocialNetwork
             try
             {
                  _userService.AddUser(newUser);
-              
-                
-                StatusText.Text = "Пользователь добавлен";
-
-                
-
+                              
+                StatusText.Text = "Пользователь добавлен";                
             }
             catch (InvalidOperationException ex)
             {
@@ -216,12 +149,6 @@ namespace HomeSocialNetwork
         }
 
 
-        // Кнопка «Найти»
-        private void FindUser_Click(object sender, RoutedEventArgs e)
-        {
-            MessageBox.Show("Функция поиска пока не реализована");
-        }
-
         // Кнопка «Обновить»
         private async void Refresh_Click(object sender, RoutedEventArgs e)
         {
@@ -232,10 +159,7 @@ namespace HomeSocialNetwork
 
             // 4. Выводим финальное сообщение
             StatusText.Text = "Список обновлён";
-
-            
-
-
+           
         }
     }
     }

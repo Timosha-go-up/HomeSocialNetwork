@@ -12,12 +12,14 @@ namespace HomeSocialNetwork.Data
     public class UserRepository
     {
         private readonly string _connectionString;
-
-        public UserRepository(Action<string>? logAction = null)
+        private readonly ILogger _logger;
+        public UserRepository(ILogger logger,Action<string>? logAction = null)
+          
         {
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));_logger = logger;
             _connectionString = $"Data Source={PathBaseFiles.DatabasePath}";
 
-            var initializer = new DatabaseInitializer(_connectionString, logAction);
+            var initializer = new DatabaseInitializer(_logger,_connectionString, logAction);
             initializer.Initialize();
         }
         public void Create(User user)

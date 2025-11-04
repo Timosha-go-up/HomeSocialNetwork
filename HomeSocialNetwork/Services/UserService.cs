@@ -6,7 +6,10 @@ namespace HomeSocialNetwork.Services
     {
         private readonly UserRepository _repo;
 
-        public UserService(UserRepository repo) => _repo = repo;
+        public UserService(UserRepository repo) 
+        {
+            _repo = repo ?? throw new ArgumentNullException(nameof(repo), "Repository не может быть null");
+        }
 
         public List<User> GetAllUsers()
         {
