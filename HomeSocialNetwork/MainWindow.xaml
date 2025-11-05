@@ -85,28 +85,9 @@
                         BorderThickness="0"/>
             </Grid>
         </Border>
-        <!-- LogPanel: панель для отображения логов -->
-        <Grid x:Name="LogPanel" 
-              Grid.Row="1"
-              Grid.Column="1"
-              Grid.ColumnSpan="2"
-              Margin="5,5,5,5" 
-              Background="#FF312E2E">
-            <Grid.ColumnDefinitions>
-            </Grid.ColumnDefinitions>
-            <ScrollViewer Grid.Row="1"
-                          Grid.Column="1"
-                          Grid.ColumnSpan="4"
-                          VerticalScrollBarVisibility="Auto"                 
-                          Padding="5">
-                <TextBlock x:Name="LogDisplay"
-                       TextWrapping="Wrap"          
-                       FontSize="16"                
-                       Foreground="LimeGreen"      
-                       Background="#FF1B1F1F"        
-                       Margin="5,5,5,5"/>
-            </ScrollViewer>
-        </Grid>
+       
+           
+        
         <!-- 2. Меню (столбец 0, строки 1–3) -->
         <StackPanel Grid.Row="1"
                     Grid.RowSpan="3"
@@ -131,12 +112,11 @@
                     Height="45"                  
                     Background="#00465445"
                     Click="Refresh_Click" FontWeight="Bold"/>
+
+            <Button Content="Показать логи"/>
+            <Button Content="Закрыть логи" />
         </StackPanel>
         <!-- 3. Основная область (столбец 1, строка 1) -->
-
-
-
-        <local:UsersTableView DataContext="{Binding}" Grid.Row="4" Grid.ColumnSpan="4" />
 
 
 

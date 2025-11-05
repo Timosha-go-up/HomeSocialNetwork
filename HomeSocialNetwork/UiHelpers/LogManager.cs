@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Media;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
@@ -9,40 +11,35 @@ using System.Windows.Threading;
 
 namespace HomeSocialNetwork.UiHelpers
 {
-    public class LogManager : IDisposable
+    public class LogManager
     {
-        public event Action? OnLogsHidden;
+       
+        private readonly System.Media.SoundPlayer _soundPlayer;
         private readonly ConcurrentQueue<string> _logQueue = new();
         private bool _isProcessing;
-        private TextBlock _logDisplay;
-        private DispatcherTimer _hideTimer;
+        private LogWindow _logWindow;
+        private string _currentAnimation = "";
 
-        public LogManager(TextBlock logDisplay, TimeSpan hideDelay = default)
+        public LogManager(LogWindow logWindow)
         {
-            _logDisplay = logDisplay ?? throw new ArgumentNullException(nameof(logDisplay));
+            _logWindow = logWindow ?? throw new ArgumentNullException(nameof(logWindow));
+           
 
-            var interval = hideDelay == default ? TimeSpan.FromSeconds(10) : hideDelay;
-            _hideTimer = new DispatcherTimer { Interval = interval };
-
-            _hideTimer.Tick += OnHideTimerTick;
         }
-
-
-
-
-
 
 
 
         public void WriteLog(string message)
         {
+            // Очищаем от лишних переносов
+            message = message.Trim('\r', '\n');
             _logQueue.Enqueue(message);
-            
+
             if (!_isProcessing)
-                ProcessLogQueue();           
+                ProcessLogQueue();
         }
 
-        private async void ProcessLogQueue(CancellationToken cancellationToken = default)
+        private async void ProcessLogQueue()
         {
             if (_isProcessing) return;
             _isProcessing = true;
@@ -51,64 +48,63 @@ namespace HomeSocialNetwork.UiHelpers
             {
                 while (_logQueue.TryDequeue(out string? message))
                 {
-                    string fullText = message + "\n";
-
-                    foreach (char c in fullText)
+                    // 1. Анимация по символам
+                    _currentAnimation = "";
+                    foreach (char c in message)
                     {
-                        // Выводим каждый символ отдельно
-                        await UpdateLogDisplayAsync(c.ToString(), cancellationToken);
+                        _currentAnimation += c;
+                        await UpdateLogDisplayAsync(_currentAnimation, true);
 
-                        // Задержка между символами (эффект «печатания»)
-                        await Task.Delay(30, cancellationToken);
+                        
+
+                        await Task.Delay(60);
                     }
+
+                    // 2. Добавляем перенос строки (только один раз!)
+                    await UpdateLogDisplayAsync("\n", false);
                 }
             }
-            catch (OperationCanceledException) { }
-
             finally
             {
                 _isProcessing = false;
-                StartHideTimer();
             }
         }
 
-        private async Task UpdateLogDisplayAsync(string text, CancellationToken cancellationToken)
+        private async Task UpdateLogDisplayAsync(string text, bool isAnimating)
         {
-            await _logDisplay.Dispatcher.InvokeAsync(() =>
+            await _logWindow.Dispatcher.InvokeAsync(() =>
             {
-                // Ограничиваем длину текста (защита от переполнения)
-                if (_logDisplay.Text.Length > 10_000)
+                if (isAnimating)
                 {
-                    _logDisplay.Text = _logDisplay.Text.Substring(_logDisplay.Text.Length - 5_000);
+                    // Режим анимации: заменяем последнюю строку
+                    var lines = _logWindow.LogTextBox.Text
+                        .Split(new[] { '\n' }, StringSplitOptions.None);
+
+                    if (lines.Length > 0)
+                    {
+                        lines[lines.Length - 1] = text;
+                        _logWindow.LogTextBox.Text = string.Join("\n", lines);
+                    }
+                    else
+                    {
+                        _logWindow.LogTextBox.Text = text;
+                    }
+                }
+                else
+                {
+                    // Финальный перенос строки
+                    _logWindow.LogTextBox.Text += text;
                 }
 
-                _logDisplay.Text += text;
-                if (_logDisplay.Parent is ScrollViewer sv) sv.ScrollToEnd();
+                _logWindow.LogTextBox.ScrollToEnd();
             }, DispatcherPriority.Background);
         }
-
-
-        private void StartHideTimer()
-        {
-            _hideTimer.Stop();
-            _hideTimer.Start();
-        }
-
-        private void OnHideTimerTick(object? sender, EventArgs e)
-        {
-            _hideTimer.Stop();
-            OnLogsHidden?.Invoke();
-        }
-
-
-        public void Dispose()
-        {
-            _hideTimer.Stop();
-            _hideTimer.Tick -= OnHideTimerTick; // Отписываемся от события
-            
-        }
-
-       
     }
+
+
+
+
+
+
 
 }

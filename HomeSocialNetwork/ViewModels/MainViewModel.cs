@@ -25,9 +25,9 @@ namespace HomeSocialNetwork.ViewModels
             get => _users;
             set
             {
-                if (_users == value) return; // Оптимизация: избегаем лишних уведомлений
+                if (_users == value) return;
 
-                _users = value ?? new ObservableCollection<User>(); // Защита от null
+                _users = value ?? new ObservableCollection<User>(); 
                 OnPropertyChanged(nameof(Users));
             }
         }
@@ -49,7 +49,6 @@ namespace HomeSocialNetwork.ViewModels
         {
             ScrollViewerVisibility = Visibility.Visible;
         }
-
 
         // 2. Реализация интерфейса INotifyPropertyChanged
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -85,11 +84,6 @@ namespace HomeSocialNetwork.ViewModels
                 OnPropertyChanged(nameof(StatusText));
             }
         }
-
-
-
-
-
 
         public void LoadUsers(UserService userService)
         {

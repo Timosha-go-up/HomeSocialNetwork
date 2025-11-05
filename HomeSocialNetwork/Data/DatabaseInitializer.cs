@@ -31,7 +31,7 @@ public class DatabaseInitializer
     /// </summary>
     public void Initialize()
     {
-        _logger.Log("Инициализация БД: проверка таблицы users...");
+        _logger.LogDebug("Инициализация БД: проверка таблицы users...");
 
 
         using var connection = new SqliteConnection(_connectionString);
@@ -47,7 +47,7 @@ public class DatabaseInitializer
 
             if (tableExists == 0)
             {
-              _logger.Log("Таблица users не найдена. Создаю новую...");
+              _logger.LogWarning("Таблица users не найдена. Создаю новую...");
                 connection.Execute(
                     @"CREATE TABLE users (
                         Id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -58,7 +58,7 @@ public class DatabaseInitializer
                         Password TEXT NOT NULL,
                         CreatedAt DATETIME NOT NULL DEFAULT (DATETIME('now', 'localtime'))
                     )");
-               _logger.Log("Таблица users успешно создана.");
+               _logger.LogDebug("Таблица users успешно создана.");
             }
             else
             {
@@ -67,8 +67,8 @@ public class DatabaseInitializer
         }
         catch (Exception ex)
         {
-            _logger.Log($"Ошибка при инициализации БД: {ex.Message}");
-            _logger.Log($"StackTrace: {ex.StackTrace}");
+            _logger.LogError($"Ошибка при инициализации БД: {ex.Message}");
+            _logger.LogError($"StackTrace: {ex.StackTrace}");
         }
     }
 
@@ -77,7 +77,7 @@ public class DatabaseInitializer
     /// </summary>
     private void CheckTableStructure(SqliteConnection connection)
     {
-        _logger.Log("Таблица users уже существует. Проверяю структуру...");
+        _logger.LogInformation("Таблица users уже существует. Проверяю структуру...");
 
         var columns = connection.Query<dynamic>(@"PRAGMA table_info(users)")
             .ToDictionary(c => c.name.ToLower(), c => new
@@ -90,29 +90,29 @@ public class DatabaseInitializer
         var requiredColumns = new Dictionary<string, Action<dynamic>>
         {
             ["firstname"] = col => {
-                if (col.Type != "text") _logger.Log("Ошибка: FirstName должен быть TEXT.");
-                if (!col.NotNull)       _logger.Log("Ошибка: FirstName должен быть NOT NULL.");
-                if (col.DefaultValue != "''") _logger.Log("Ошибка: FirstName должен иметь DEFAULT ''.");
+                if (col.Type != "text") _logger.LogWarning("Ошибка: FirstName должен быть TEXT.");
+                if (!col.NotNull)       _logger.LogError("Ошибка: FirstName должен быть NOT NULL.");
+                if (col.DefaultValue != "''") _logger.LogError("Ошибка: FirstName должен иметь DEFAULT ''.");
             },
             ["lastname"] = col => {
-                if (col.Type != "text")     _logger.Log("Ошибка: LastName должен быть TEXT.");
-                if (col.NotNull)    _logger.Log("Ошибка: LastName не должен быть NOT NULL (может быть пустым).");
+                if (col.Type != "text")     _logger.LogError("Ошибка: LastName должен быть TEXT.");
+                if (col.NotNull)    _logger.LogError("Ошибка: LastName не должен быть NOT NULL (может быть пустым).");
             },
             ["phonenumber"] = col => {
-                if (col.Type != "text")     _logger.Log("Ошибка: PhoneNumber должен быть TEXT.");
-                if (col.NotNull)    _logger.Log("Ошибка: PhoneNumber не должен быть NOT NULL (может быть пустым).");
+                if (col.Type != "text")     _logger.LogError("Ошибка: PhoneNumber должен быть TEXT.");
+                if (col.NotNull)    _logger.LogError("Ошибка: PhoneNumber не должен быть NOT NULL (может быть пустым).");
             },
             ["email"] = col => {
-                if (col.Type != "text")             _logger.Log("Ошибка: Email должен быть TEXT.");
-                if (!col.NotNull) _logger.Log    ("Ошибка: Email должен быть NOT NULL.");
+                if (col.Type != "text")             _logger.LogWarning                ("Ошибка: Email должен быть TEXT.");
+                if (!col.NotNull) _logger.LogWarning   ("Ошибка: Email должен быть NOT NULL.");
             },
             ["password"] = col => {
-                if (col.Type != "text")     _logger.Log("Ошибка: Password должен быть TEXT.");
-                if (!col.NotNull) _logger.Log("Ошибка: Password должен быть NOT NULL.");
+                if (col.Type != "text")     _logger.LogError("Ошибка: Password должен быть TEXT.");
+                if (!col.NotNull) _logger.LogError("Ошибка: Password должен быть NOT NULL.");
             },
             ["createdat"] = col => {
-                if (col.Type != "datetime") _logger.Log("Ошибка: CreatedAt должен быть DATETIME.");
-                if (!col.NotNull) _logger.Log("Ошибка: CreatedAt должен быть NOT NULL.");
+                if (col.Type != "datetime") _logger.LogError("Ошибка: CreatedAt должен быть DATETIME.");
+                if (!col.NotNull) _logger.LogError("Ошибка: CreatedAt должен быть NOT NULL.");
             }
         };
 
@@ -122,7 +122,7 @@ public class DatabaseInitializer
         {
             if (!columns.ContainsKey(colName))
             {
-                _logger.Log($"Ошибка: отсутствует столбец '{colName}'.");
+                _logger.LogError($"Ошибка: отсутствует столбец '{colName}'.");
                 isStructureValid = false;
             }
             else
@@ -132,9 +132,9 @@ public class DatabaseInitializer
         }
 
         if (isStructureValid)
-            _logger.Log("Структура таблицы users корректна.");
+            _logger.LogError("Структура таблицы users корректна.");
         else
-            _logger.    Log("Предупреждение: структура таблицы users содержит ошибки.");
+            _logger.LogError("Предупреждение: структура таблицы users содержит ошибки.");
     }
 
     

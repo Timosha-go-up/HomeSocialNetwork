@@ -1,0 +1,31 @@
+﻿<Window x:Class="HomeSocialNetwork.LogWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Логи" Height="500
+        " Width="1000" >
+    <Grid>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            
+            <!-- Данные -->
+        </Grid.RowDefinitions>
+
+        <TextBox x:Name="LogTextBox"
+              TextWrapping="Wrap"
+              AcceptsReturn="True"
+              VerticalScrollBarVisibility="Auto"
+              IsReadOnly="True"
+                 FontSize="14"
+                 FontWeight="Bold" Background="#FF060606"  Foreground="White" SelectionBrush="#FF297AB8">
+            <TextBox.SelectionTextBrush>
+                <ImageBrush/>
+            </TextBox.SelectionTextBrush>
+        </TextBox>
+
+
+
+
+
+    </Grid>
+</Window>

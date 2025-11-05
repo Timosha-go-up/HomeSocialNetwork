@@ -72,17 +72,5 @@ namespace HomeSocialNetwork.Controls
             }
         }
 
-       
-
-
-
-
-
-
-
-
-
-
-
     }
 }

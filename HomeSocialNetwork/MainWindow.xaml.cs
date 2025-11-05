@@ -1,16 +1,11 @@
-﻿using HomeSocialNetwork.Controls;
-using HomeSocialNetwork.Data;
+﻿using HomeSocialNetwork.Data;
 using HomeSocialNetwork.Helpers;
 using HomeSocialNetwork.Models;
 using HomeSocialNetwork.Services;
 using HomeSocialNetwork.UiHelpers;
 using HomeSocialNetwork.ViewModels;
-using Microsoft.Data.Sqlite;
 using System.Collections.Concurrent;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Diagnostics;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -23,11 +18,12 @@ namespace HomeSocialNetwork
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window
-    {        
+    {
+        private ILogger _logger;
         private UserService _userService;
-        private ConcurrentQueue<string> _logQueue = new();
+      
         private LogManager _logManager;
-        private DispatcherTimer _logHideTimer;      
+      public LogWindow _logWindow;
             
         public MainWindow()
         {
@@ -37,27 +33,35 @@ namespace HomeSocialNetwork
                 
                   // 1. Создаём ViewModel
                 var mainVm = new MainViewModel();
-
+                
+               
                 // 2. Устанавливаем DataContext окна
-                DataContext = mainVm;                                           
-               _logManager = new LogManager(LogDisplay, TimeSpan.FromSeconds(10));
-             
-                _logManager.OnLogsHidden += () =>
-                {
-                    LogPanel.Visibility = Visibility.Collapsed;
+                DataContext = mainVm;
 
-                };
+               
 
-                var logger = new GenericLogger(_logManager.WriteLog);
+                _logWindow = new LogWindow();
+                
 
-                logger.Log("Application started. PID: " + Process.GetCurrentProcess().Id);
 
-                var repo = new UserRepository(logger);  
-                logger.Log("Все логи выведены  панель логов скроется через 10 секунд");
+                _logManager = new LogManager(_logWindow);
 
-                 var userService = new UserService(repo);
-                mainVm.LoadUsers(userService);
-            
+              _logger = new GenericLogger(_logManager.WriteLog);
+
+
+                _logger.LogInformation("Application started. PID: " + Process.GetCurrentProcess().Id);
+
+                var repo = new UserRepository(_logger);                  
+
+                  _userService = new UserService(repo);
+
+
+
+               
+
+
+                mainVm.LoadUsers(_userService);
+             _logWindow.Show();
             }
             catch (Exception ex)
             {
@@ -70,15 +74,24 @@ namespace HomeSocialNetwork
             }
         }
 
+        
+
+        
+
+       
+
+      
+
+
         private void ShowScrollViewerButton_Click(object sender, RoutedEventArgs e)
         {
             if (DataContext is MainViewModel vm)
             {
-                vm.ShowScrollViewer(); // Вызываем метод из ViewModel
+                vm.ShowScrollViewer(); 
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine("DataContext не является MainViewModel!");
+               Debug.WriteLine("DataContext не является MainViewModel!");
             }
 
         }
@@ -90,8 +103,8 @@ namespace HomeSocialNetwork
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine
-                    ("DataContext не является MainViewModel. Проверьте привязку в XAML.");
+               Debug.WriteLine
+               ("DataContext не является MainViewModel. Проверьте привязку в XAML.");
             }
         }
 

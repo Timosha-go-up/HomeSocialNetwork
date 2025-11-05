@@ -32,27 +32,35 @@ namespace HomeSocialNetwork.Data
                     @"INSERT INTO users (FirstName, LastName, PhoneNumber, Email, Password) 
                   VALUES (@FirstName, @LastName, @PhoneNumber, @Email, @Password)",
                     user);
+
+                _logger.LogInformation($"вставка пользователя {user.FirstName} прошла успешно");
             }
             catch (SqliteException ex) when (ex.SqliteErrorCode == 19)
             {
+                _logger.LogError($"попытка вставки существующего эмейла {user.Email} ");
                 // Проверяем, что в тексте ошибки упоминается Email
                 if (ex.Message.Contains("Email", StringComparison.OrdinalIgnoreCase) ||
                     ex.Message.Contains("users.Email", StringComparison.OrdinalIgnoreCase))
                 {
                     throw new InvalidOperationException($"Email '{user.Email}' уже зарегистрирован.");
                 }
-                // Если ошибка по другому полю — перебрасываем исходное исключение
+                
                 throw;
             }
         }
         public List<User> GetAll()
         {
             using var connection = new SqliteConnection(_connectionString);
-            return connection.Query<User>(
-                @"SELECT Id, FirstName, LastName, PhoneNumber, Email, Password, CreatedAt 
-              FROM users ORDER BY Id").ToList();
 
-           
+            var users = connection.Query<User>(
+                @"SELECT Id, FirstName, LastName, PhoneNumber, Email, Password, CreatedAt
+          FROM users ORDER BY Id").ToList();
+
+            _logger.LogInformation($"Получено пользователей из БД: [{users.Count}]");
+
+            return users;
+
+
         }
         public User? GetByEmail(string email)
         {

@@ -11,14 +11,15 @@ namespace HomeSocialNetwork.Services
             _repo = repo ?? throw new ArgumentNullException(nameof(repo), "Repository не может быть null");
         }
 
-        public List<User> GetAllUsers()
+       
+           public List<User> GetAllUsers()
         {
             var users = _repo.GetAll();
 
-         
-
-            return users;
+            return users ?? throw new InvalidOperationException("Репозиторий вернул null");
         }
+
+
 
         public void AddUser(User user)
         {
