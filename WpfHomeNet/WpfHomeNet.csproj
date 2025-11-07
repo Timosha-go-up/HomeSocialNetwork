@@ -9,13 +9,22 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Converters\**" />
+    <Compile Remove="Properties\**" />
+    <EmbeddedResource Remove="Converters\**" />
+    <EmbeddedResource Remove="Properties\**" />
+    <None Remove="Converters\**" />
+    <None Remove="Properties\**" />
+    <Page Remove="Converters\**" />
+    <Page Remove="Properties\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Data\DB\" />
     <Folder Include="Models\" />
-    <Folder Include="Converters\" />
-    <Folder Include="Properties\" />
     <Folder Include="Resources\" />
-    <Folder Include="Views\" />
     <Folder Include="Services\" />
+    <Folder Include="Views\" />
   </ItemGroup>
 
   <ItemGroup>

@@ -32,7 +32,7 @@ namespace HomeSocialNetwork
         public MainWindow()
         {
             InitializeComponent();
-            this.Left = 100;
+            this.Left = 20;
 
             // Запуск асинхронной инициализации с обработкой ошибок
             InitializeAsync().ContinueWith(task =>
@@ -128,7 +128,7 @@ namespace HomeSocialNetwork
         {
             if (DataContext is MainViewModel vm)
             {                 
-                await Task.Delay(2000);
+               
             
                 vm.ScrollViewerVisibility = Visibility.Visible;                                   
             }
@@ -186,9 +186,13 @@ namespace HomeSocialNetwork
 
             try
             {
-                await _userService.AddUserAsync(newUser); // Делаем асинхронным!
+               // Делаем асинхронным!
+ await _userService.AddUserAsync(newUser); 
+                
 
-                _status.SetStatus("Пользователь добавлен");
+                await Task.Delay(2000); 
+
+               _status.SetStatus("Пользователь добавлен");
 
             }
             catch (InvalidOperationException ex)
