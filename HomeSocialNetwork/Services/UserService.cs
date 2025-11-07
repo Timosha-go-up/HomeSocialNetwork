@@ -1,29 +1,37 @@
 ﻿using HomeSocialNetwork.Data;
+using HomeSocialNetwork.Helpers;
 using HomeSocialNetwork.Models;
 namespace HomeSocialNetwork.Services
 {
     public class UserService
     {
+        private readonly ILogger _logger;
+
         private readonly UserRepository _repo;
 
-        public UserService(UserRepository repo) 
+        public UserService(UserRepository repo,ILogger logger) 
         {
+            _logger = logger;
             _repo = repo ?? throw new ArgumentNullException(nameof(repo), "Repository не может быть null");
         }
 
-       
-           public List<User> GetAllUsers()
-        {
-            var users = _repo.GetAll();
 
-            return users ?? throw new InvalidOperationException("Репозиторий вернул null");
+        public Task<List<User>> GetAllUsersAsync()
+        {
+            return Task.Run(() =>
+            {
+                var users = _repo.GetAll(); // Синхронный вызов
+                if (users == null)
+                    throw new InvalidOperationException("Репозиторий вернул null");
+                _logger.LogInformation($" GetAllUsersAsync вернул {users.Count} пользователей");
+                return users;
+            });
         }
 
 
-
-        public void AddUser(User user)
+        public async Task AddUserAsync(User user)
         {
-            // Валидация обязательных полей
+            // 1. Валидация обязательных полей
             if (string.IsNullOrWhiteSpace(user.FirstName))
                 throw new ArgumentException("Имя (FirstName) обязательно");
 
@@ -33,12 +41,18 @@ namespace HomeSocialNetwork.Services
             if (string.IsNullOrWhiteSpace(user.Password))
                 throw new ArgumentException("Пароль (Password) обязателен");
 
-            // Заполняем дефолтные значения для nullable-строк
+            // 2. Заполняем дефолтные значения
             user.LastName ??= string.Empty;
             user.PhoneNumber ??= string.Empty;
 
-            _repo.Create(user);
+            // 3. Асинхронный вызов репозитория
+            await _repo.CreateAsync(user);
         }
+
+
+
+
+
 
 
         public User? FindUser(string email)

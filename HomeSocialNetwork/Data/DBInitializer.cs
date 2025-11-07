@@ -2,10 +2,9 @@
 using HomeSocialNetwork.Helpers;
 using Microsoft.Data.Sqlite;
 using System.Diagnostics.CodeAnalysis;
-public class DatabaseInitializer
+public class DBInitializer
 {
-    private readonly string _connectionString;
-    private readonly Action<string> _logAction;
+    private readonly string _connectionString;   
     private readonly ILogger _logger;
     /// <summary>
     /// Конструктор инициализатора БД.
@@ -14,68 +13,66 @@ public class DatabaseInitializer
     /// <param name="logAction">Делегат для записи логов (например, AppLogger.Log)</param>
     /// 
 
-    public DatabaseInitializer(ILogger logger,
-        string connectionString,
-        Action<string>? logAction = null)
+     public DBInitializer(ILogger logger,string connectionString)               
     {
-        _logger = logger;
-        _connectionString = connectionString ??
-            throw new ArgumentNullException(nameof(connectionString));
+            _logger = logger;
+            _connectionString = connectionString ??
+            throw new ArgumentNullException(nameof(connectionString));              
+    }
+    
+    public async Task InitializeAsync()
+    {
+        LogInitializationStarted();
 
-        // Если логгер не передан — используем пустой делегат (без вывода)
-        _logAction = logAction ?? (msg => { });
+        await using var connection = new SqliteConnection(_connectionString);
+        await connection.OpenAsync();
+
+        if (!await TableExistsAsync(connection, "users"))
+        {
+            await CreateUsersTableAsync(connection);
+        }
+        else
+        {
+            await CheckTableStructureAsync(connection);
+        }
     }
 
-    /// <summary>
-    /// Инициализировать БД: проверить/создать таблицу users.
-    /// </summary>
-    public void Initialize()
+    private void LogInitializationStarted()
     {
         _logger.LogDebug("Инициализация БД: проверка таблицы users...");
+    }
+
+    private async Task<bool> TableExistsAsync(SqliteConnection connection, string tableName)
+    {
+        var sql = @"SELECT COUNT(*) FROM sqlite_master 
+                WHERE type = 'table' AND name = @tableName";
+
+        var count = await connection.ExecuteScalarAsync<int>(sql, new { tableName });
+        return count > 0;
+    }
 
 
-        using var connection = new SqliteConnection(_connectionString);
+    private async Task CreateUsersTableAsync(SqliteConnection connection)
+    {
+        _logger.LogWarning("Таблица users не найдена. Создаю новую...");
+        var sql = @"CREATE TABLE users (
+        Id INTEGER PRIMARY KEY AUTOINCREMENT,
+        FirstName TEXT NOT NULL DEFAULT '',
+        LastName TEXT DEFAULT '',
+        PhoneNumber TEXT DEFAULT '',
+        Email TEXT UNIQUE NOT NULL,
+        Password TEXT NOT NULL,
+        CreatedAt DATETIME NOT NULL DEFAULT (DATETIME('now', 'localtime'))
+    )";
 
-        try
-        {
-            connection.Open();
-
-            // Проверяем, существует ли таблица users
-            var tableExists = connection.ExecuteScalar<int>(
-                @"SELECT COUNT(*) FROM sqlite_master
-                  WHERE type = 'table' AND name = 'users'");
-
-            if (tableExists == 0)
-            {
-              _logger.LogWarning("Таблица users не найдена. Создаю новую...");
-                connection.Execute(
-                    @"CREATE TABLE users (
-                        Id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        FirstName TEXT NOT NULL DEFAULT '',
-                        LastName TEXT DEFAULT '',
-                        PhoneNumber TEXT DEFAULT '',
-                        Email TEXT UNIQUE NOT NULL,
-                        Password TEXT NOT NULL,
-                        CreatedAt DATETIME NOT NULL DEFAULT (DATETIME('now', 'localtime'))
-                    )");
-               _logger.LogDebug("Таблица users успешно создана.");
-            }
-            else
-            {
-                CheckTableStructure(connection);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Ошибка при инициализации БД: {ex.Message}");
-            _logger.LogError($"StackTrace: {ex.StackTrace}");
-        }
+        await connection.ExecuteAsync(sql);
+        _logger.LogDebug("Таблица users успешно создана.");
     }
 
     /// <summary>
     /// Проверить структуру существующей таблицы users.
     /// </summary>
-    private void CheckTableStructure(SqliteConnection connection)
+    private async Task CheckTableStructureAsync(SqliteConnection connection)
     {
         _logger.LogInformation("Таблица users уже существует. Проверяю структуру...");
 
@@ -132,13 +129,9 @@ public class DatabaseInitializer
         }
 
         if (isStructureValid)
-            _logger.LogError("Структура таблицы users корректна.");
+            _logger.LogInformation("Структура таблицы users корректна.");
         else
             _logger.LogError("Предупреждение: структура таблицы users содержит ошибки.");
-    }
-
-    
-
-
+    }    
 }
 

@@ -41,29 +41,32 @@ namespace HomeSocialNetwork.Controls
 
         private void UsersTableView_Loaded(object sender, RoutedEventArgs e)
         {
-            if (DataContext is MainViewModel vm)
+            try
             {
-                _viewModel = vm;
-                // Отписываемся от события
-                Loaded -= UsersTableView_Loaded;
+                if (DataContext is MainViewModel vm)
+                {
+                    _viewModel = vm;
+                    // Отписываемся только если успешно обработали
+                    Loaded -= UsersTableView_Loaded;
+                }
+                else
+                {
+                    Debug.WriteLine($"DataContext имеет тип: {DataContext?.GetType().Name}, ожидается MainViewModel");
+                    throw new InvalidOperationException("DataContext не установлен или имеет неверный тип!");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                throw new InvalidOperationException("DataContext не установлен!");
+                Debug.WriteLine($"Ошибка в UsersTableView_Loaded: {ex.Message}");
+                // Не отписываемся, чтобы попытаться снова при следующем Loaded
             }
         }
 
-        private void ShowUser_Click(object sender, MouseButtonEventArgs e)
-        {
-            if (_viewModel != null)
-            {
-                _viewModel.ScrollViewerVisibility = Visibility.Visible;
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("ViewModel не инициализирована!");
-            }
-        }
+      
+
+
+
+
         private void TextBlock_Click(object sender, MouseButtonEventArgs e)
         {
             if (DataContext is MainViewModel vm)

@@ -2,72 +2,72 @@
 using HomeSocialNetwork.Helpers;
 using HomeSocialNetwork.Models;
 using Microsoft.Data.Sqlite;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Text;
 namespace HomeSocialNetwork.Data
 {
     public class UserRepository
     {
         private readonly string _connectionString;
+        private readonly DBInitializer _databaseInitializer;
         private readonly ILogger _logger;
-        public UserRepository(ILogger logger,Action<string>? logAction = null)
+        public UserRepository(DBInitializer databaseInitializer,string connectionString, ILogger logger)
           
         {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));_logger = logger;
-            _connectionString = $"Data Source={PathBaseFiles.DatabasePath}";
+            _databaseInitializer = databaseInitializer;
 
-            var initializer = new DatabaseInitializer(_logger,_connectionString, logAction);
-            initializer.Initialize();
+            _connectionString = connectionString;
+
+           _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-        public void Create(User user)
+        public async Task CreateAsync(User user)
         {
             using var connection = new SqliteConnection(_connectionString);
 
             try
             {
-                connection.Execute(
-                    @"INSERT INTO users (FirstName, LastName, PhoneNumber, Email, Password) 
-                  VALUES (@FirstName, @LastName, @PhoneNumber, @Email, @Password)",
+                await connection.ExecuteAsync(
+                    @"INSERT INTO users (FirstName, LastName, PhoneNumber, Email, Password)
+              VALUES (@FirstName, @LastName, @PhoneNumber, @Email, @Password)",
                     user);
 
-                _logger.LogInformation($"вставка пользователя {user.FirstName} прошла успешно");
+                _logger.LogInformation($"Вставка пользователя {user.FirstName} прошла успешно");
             }
             catch (SqliteException ex) when (ex.SqliteErrorCode == 19)
             {
-                _logger.LogError($"попытка вставки существующего эмейла {user.Email} ");
-                // Проверяем, что в тексте ошибки упоминается Email
+                _logger.LogError($"Попытка вставки существующего email: {user.Email}");
+
                 if (ex.Message.Contains("Email", StringComparison.OrdinalIgnoreCase) ||
                     ex.Message.Contains("users.Email", StringComparison.OrdinalIgnoreCase))
                 {
                     throw new InvalidOperationException($"Email '{user.Email}' уже зарегистрирован.");
                 }
-                
+
                 throw;
             }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Ошибка при добавлении пользователя: {ex.Message}");
+                throw; 
+            }
         }
+
         public List<User> GetAll()
         {
             using var connection = new SqliteConnection(_connectionString);
-
+            _logger.LogDebug("UserRepository.GetAll: начало запроса");
             var users = connection.Query<User>(
-                @"SELECT Id, FirstName, LastName, PhoneNumber, Email, Password, CreatedAt
-          FROM users ORDER BY Id").ToList();
-
+            @"SELECT Id, FirstName, LastName, PhoneNumber, Email, Password, CreatedAt
+            FROM users ORDER BY Id").ToList();
+           
             _logger.LogInformation($"Получено пользователей из БД: [{users.Count}]");
-
+            _logger.LogDebug("UserRepository.GetAll:  конец запроса");
             return users;
-
-
         }
         public User? GetByEmail(string email)
         {
-            using var connection = new SqliteConnection(_connectionString);
-            return connection.QueryFirstOrDefault<User>(
+                using var connection = new SqliteConnection(_connectionString);
+                return connection.QueryFirstOrDefault<User>(
                 @"SELECT Id, FirstName, LastName, PhoneNumber, Email, Password, CreatedAt
-          FROM users WHERE Email = @Email",
+                FROM users WHERE Email = @Email",
                 new { Email = email });
         }
     }

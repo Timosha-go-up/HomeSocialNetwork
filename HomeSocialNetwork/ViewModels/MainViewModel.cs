@@ -1,4 +1,5 @@
-﻿using HomeSocialNetwork.Models;
+﻿using HomeSocialNetwork.Helpers;
+using HomeSocialNetwork.Models;
 using HomeSocialNetwork.Services;
 using System;
 using System.Collections.Generic;
@@ -15,25 +16,37 @@ using System.Windows.Input;
 namespace HomeSocialNetwork.ViewModels
 {
 
+    
+        public interface IStatusUpdater
+        {
+            void SetStatus(string message);
+        }
 
-    public class MainViewModel : INotifyPropertyChanged
+    public class MainViewModel : INotifyPropertyChanged, IStatusUpdater
     {
-        private ObservableCollection<User> _users = new ObservableCollection<User>();
+        private readonly UserService _userService;
+        private readonly ILogger _logger;
 
+
+        public MainViewModel(UserService userService, ILogger logger)
+        {
+            _userService = userService;
+            _logger = logger;
+        }
+
+        private ObservableCollection<User> _users = new ObservableCollection<User>();
         public ObservableCollection<User> Users
         {
             get => _users;
-            set
+            private set
             {
                 if (_users == value) return;
-
-                _users = value ?? new ObservableCollection<User>(); 
+                _users = value;
                 OnPropertyChanged(nameof(Users));
             }
         }
 
-        private Visibility _scrollViewerVisibility = Visibility.Visible;
-
+        private Visibility _scrollViewerVisibility = Visibility.Collapsed;
         public Visibility ScrollViewerVisibility
         {
             get => _scrollViewerVisibility;
@@ -44,65 +57,69 @@ namespace HomeSocialNetwork.ViewModels
             }
         }
 
+        private string _statusText = string.Empty;
+        public string StatusText
+        {
+            get => _statusText;
+            private set
+            {
+                if (_statusText == value) return;
+                _statusText = value;
+                Debug.WriteLine($"SETTER: {_statusText} → {value}");
+                OnPropertyChanged(nameof(StatusText));
+            }
+        }
+
+        public void SetStatus(string message) => StatusText = message;
 
         public void ShowScrollViewer()
         {
             ScrollViewerVisibility = Visibility.Visible;
         }
 
-        // 2. Реализация интерфейса INotifyPropertyChanged
+        public async Task LoadUsersAsync()
+        {
+            StatusText = "Загрузка...";
+
+            try
+            {
+                var users = await _userService.GetAllUsersAsync();
+
+                if (users == null)
+                {
+                    StatusText = "Ошибка: получены пустые данные.";
+                    return;
+                }
+
+                Users.Clear();
+                foreach (var user in users)
+                {
+                    Users.Add(user);
+                }
+
+                _logger?.LogInformation($"Загружено {users.Count} пользователей");
+
+                StatusText = $"Загружено {users.Count} пользователей";
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError("Ошибка загрузки пользователей");
+                StatusText = $"Ошибка загрузки: {ex.Message}";
+            }
+        }
+
+
+
+
+
         public event PropertyChangedEventHandler? PropertyChanged;
 
         protected void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-
-
-
-        private bool _hideText = false;
-        public bool HideText
-        {
-            get => _hideText;
-            set
-            {
-                Debug.WriteLine($"SETTER: {_hideText} → {value}");
-                _hideText = value;
-                OnPropertyChanged(nameof(HideText));
-            }
-        }
-
-        private string _statusText = string.Empty;
-        public string StatusText
-        {
-            get => _statusText;
-            set
-            {
-                if (_statusText == value) return;
-                Debug.WriteLine($"SETTER: {_statusText} → {value}");
-                _statusText = value ?? string.Empty;
-                OnPropertyChanged(nameof(StatusText));
-            }
-        }
-
-        public void LoadUsers(UserService userService)
-        {
-            try
-            {
-                var users = userService.GetAllUsers();
-                Users = new ObservableCollection<User>(users);
-                StatusText = $"Загружено {users.Count} пользователей";
-            }
-            catch (Exception ex)
-            {
-                StatusText = $"Ошибка загрузки: {ex.Message}";
-            }
-        }
-
-
-        
-        
     }
+
 
 
 

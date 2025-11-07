@@ -5,46 +5,12 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
              d:DesignHeight="450" Width="990 ">
-    <UserControl.Resources>
-        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
-        <Style x:Key="ScrollViewerFocusVisualStyle1" TargetType="{x:Type Control}">
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type Control}">
-                        <Grid/>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
+    
 
-        <!-- Второй стиль: BorderedContentStyle -->
-        <Style x:Key="BorderedContentStyle" TargetType="ContentControl">
-            <Setter Property="HorizontalAlignment" Value="Stretch"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ContentControl">
-                        <Border BorderThickness="1"
-                            BorderBrush="Black"
-                            Padding="2"
-                            HorizontalAlignment="{TemplateBinding HorizontalAlignment}">
-                            <TextBlock Text="{Binding Content, RelativeSource={RelativeSource TemplatedParent}, StringFormat={}{0}}"
-                                   VerticalAlignment="Center"
-                                   HorizontalAlignment="Left"
-                                   FontSize="14"
-                                   FontWeight="Bold"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-    </UserControl.Resources>
-
-
-
-
-
-
-    <ScrollViewer  Visibility="{Binding ScrollViewerVisibility}" VerticalScrollBarVisibility="Auto"   HorizontalScrollBarVisibility="Auto"  >
+    <ScrollViewer  Visibility="{Binding ScrollViewerVisibility}"
+                   VerticalScrollBarVisibility="Hidden"
+                   HorizontalScrollBarVisibility="Disabled" 
+                   Focusable="False" >
         <Grid>
             <!-- Определяем две строки -->
             <Grid.RowDefinitions>
@@ -53,7 +19,6 @@
                 <RowDefinition Height="*"/>
                 <!-- Данные -->
             </Grid.RowDefinitions>
-
             <!-- 1. Верхний ряд: заголовки колонок -->
             <Grid Grid.Row="0" Margin="1" >
                 <Grid.Resources>
@@ -82,17 +47,10 @@
                 <TextBlock Grid.Column="5" Text="Пароль" />
                 <TextBlock Grid.Column="6" Text="Дата создания" />
                
-               <TextBlock Grid.Column="7"  Text="[x]" MouseLeftButtonDown="TextBlock_Click" Cursor="Hand"/>  
-    
-  
-    
-                
-  
-                                 
-
-
-    
-
+               <TextBlock Grid.Column="7" 
+                          Text="[x]"
+                          MouseLeftButtonDown="TextBlock_Click"
+                          Cursor="Hand"/>     
             </Grid>
 
             <!-- 2. Нижний ряд: данные пользователей -->

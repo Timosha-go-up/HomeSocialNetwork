@@ -34,7 +34,7 @@ namespace HomeSocialNetwork.Helpers
             memberName = CleanName(memberName);
 
             // Формируем запись лога
-            var timestamp = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff");
+            var timestamp = DateTime.UtcNow.ToString("MM/dd HH:mm:ss.fff");
             var levelStr = level.ToString().ToUpper();
             var logEntry = $"[{timestamp}] [{levelStr}] {className}.{memberName}:{lineNumber} | {message}";
 
