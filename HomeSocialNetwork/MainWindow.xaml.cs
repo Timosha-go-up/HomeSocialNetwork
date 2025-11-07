@@ -53,11 +53,14 @@ namespace HomeSocialNetwork
         {
             try
             {
-                _logWindow = new LogWindow();                             
-                _connectionDB = $"Data Source={PathBaseFiles.DatabasePath}";
+                _logWindow = new LogWindow();
                 _logManager = new LogManager(_logWindow);
                 _logger = new GenericLogger(_logManager.WriteLog);
-
+                // Получаем валидный путь к БД (основной или резервный)
+                var dbPath = PathBaseFiles.GetValidDatabasePath();
+                _logger.LogInformation($"Путь бд {dbPath}");
+                _connectionDB = $"Data Source={dbPath}";
+                               
                 _logger.LogInformation("Application started. PID: " + Process.GetCurrentProcess().Id);
 
                 _databaseInitializer = new DBInitializer(_logger, _connectionDB);

@@ -3,7 +3,7 @@
          xmlns:local="clr-namespace:HomeSocialNetwork.UiHelpers"
           xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
           xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"     
-          Title="HomeSocialNetwork"
+          Title="HomeNet"
           Height="700" Width="1000"
           WindowStyle="None"
           ResizeMode="NoResize"          
@@ -44,7 +44,7 @@
                 CornerRadius="1">
                             <ContentPresenter
                     x:Name="contentPresenter" 
-                                HorizontalAlignment="Center"
+                    HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     TextElement.FontWeight="{TemplateBinding FontWeight}"
                     TextElement.Foreground="{TemplateBinding Foreground}"
@@ -80,90 +80,82 @@
     </Window.Resources>
     <Border   >
         <Grid>
-        <Grid.Background>
-            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                <GradientStop Color="#FF668C66" Offset="0.0"/>
-                <GradientStop Color="Tan" Offset="0.7"/>
-                <GradientStop Color="#99104710" Offset="1.0"/>
-            </LinearGradientBrush>
-        </Grid.Background>
-        <Grid.RowDefinitions>
-                <!-- отступ для толщины рамки-->
-               
+            <Grid.Background>
+                <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                    <GradientStop Color="#FF668C66" Offset="0.0"/>
+                    <GradientStop Color="Tan" Offset="0.7"/>
+                    <GradientStop Color="#99104710" Offset="1.0"/>
+                </LinearGradientBrush>
+            </Grid.Background>
+            <Grid.RowDefinitions>
                 <RowDefinition Height="40" />
                 <RowDefinition Height="350"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="40"/>
-              
-                <!-- Статус-бар -->
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-              
-                <ColumnDefinition Width="200"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="160"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="40"/>
-              
             </Grid.ColumnDefinitions>
-        <!-- 1. Шапка (строка 0) -->
-            <Border Grid.Row="0"
-                    
-                Grid.Column="0">
-                <TextBlock 
-                    Text=" HomeSocialNetwork" 
-                     FontSize="20"                                        
-                    Foreground="Black"/>
+            <!-- 1. Шапка (строка 0) -->
+            <Border 
+             Grid.Row="0"                   
+             Grid.Column="0">
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    FontWeight="Bold"
+                   Text=" HomeNet" 
+                   FontSize="20"                                        
+                   Foreground="Black"/>
             </Border >
+            <Button
+                 Grid.Column="3"    
+                 Grid.Row="0"
+                 Content="×"
+                 Width="40"
+                 Height="40"                                              
+                 FontWeight="Bold"
+                 FontSize="24"
+                 HorizontalAlignment="Center"  
+                 Click="CloseButton_Click"
+                 Background="#004E594E"
+                 BorderThickness="1"/>
 
-         <Button
-         Grid.Column="3"    
-         Grid.Row="0"
-         Content="×"
-         Width="40"
-         Height="40"                                              
-         FontWeight="Bold"
-         FontSize="24"
-            HorizontalAlignment="Center"  
-         Click="CloseButton_Click"
-         Background="#004E594E"
-         BorderThickness="1"/>
-
-            <!-- 2. Меню (столбец 0, строки 1–3) -->
-            <StackPanel    Grid.Row="1"                        
-           Background="#00465445"
-          
-           Grid.Column="0"         
-           Orientation="Vertical">
+            <StackPanel x:Name="Menu"
+                Grid.Row="1"
+                Grid.Column="0"                         
+                Background="#00465445"                             
+                Orientation="Vertical">
                 <!-- будующий обработчик( Click="Menu_Click" ) -->
-                <Button Content="Menu"  />
-                <Button Content="Добавить"
+                <Button Content="Меню пустое пока"  />
+                <Button Content="Добавить юзера"
                         Click="AddUser_Click"/>
                 <Button x:Name="toggleButton" 
-                       Content="Показать таблицу"
+                       Content="Показать юзеров"
                        Click="ShowScrollViewerButton_Click"/>
-                <Button Content="Обновить" Click="Refresh_Click"/>
+                <Button Content="Обновить юзеров" Click="Refresh_Click"/>
 
                 <Button Content="Показать логи" />
             </StackPanel>
 
-            <!-- Строка с таблицей пользователей -->
             <controls:UsersTableView 
             x:Name="userTableView"  
               Grid.Row="2" 
               Grid.ColumnSpan="4"/>
             <!-- 5. Статус-бар (строка 4, весь width) -->
-        <StatusBar Grid.Row="3"
-                   Grid.Column="0"
+            <StatusBar x:Name="StatusUsers"
+            Grid.Row="3"
+             Grid.Column="0"
              Grid.ColumnSpan="3"                   
              FontSize="14"
              Background="#00C3D1C3">
-            <TextBlock Name="StatusText"                    
+                <TextBlock Name="StatusText"                    
              Text="{Binding StatusText}"                       
              FontWeight="Bold"/>
-        </StatusBar>
-    </Grid>
-            
-            
-            
+            </StatusBar>
+        </Grid>
     </Border>
          
     
