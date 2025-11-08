@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Threading;
 
-namespace HomeSocialNetwork.UiHelpers
+namespace WpfHomeNet.UiHelpers
 {
     public class LogManager
     {

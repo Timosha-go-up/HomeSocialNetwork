@@ -21,7 +21,6 @@
 
   <ItemGroup>
     <Folder Include="Data\DB\" />
-    <Folder Include="Models\" />
     <Folder Include="Resources\" />
     <Folder Include="Services\" />
     <Folder Include="Views\" />
@@ -29,7 +28,9 @@
 
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.1.66" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="7.0.0-preview2.25289.6" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.0-rc.2.25502.107" />
+    <PackageReference Include="Npgsql" Version="10.0.0-rc.1" />
   </ItemGroup>
 
 </Project>

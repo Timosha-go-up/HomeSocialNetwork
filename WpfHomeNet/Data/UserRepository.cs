@@ -7,9 +7,9 @@ namespace HomeSocialNetwork.Data
     public class UserRepository
     {
         private readonly string _connectionString;
-        private readonly DBInitializer _databaseInitializer;
+        private readonly DBInitializerSql _databaseInitializer;
         private readonly ILogger _logger;
-        public UserRepository(DBInitializer databaseInitializer,string connectionString, ILogger logger)
+        public UserRepository(DBInitializerSql databaseInitializer,string connectionString, ILogger logger)
           
         {
             _databaseInitializer = databaseInitializer;
@@ -18,7 +18,7 @@ namespace HomeSocialNetwork.Data
 
            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-        public async Task CreateAsync(User user)
+        public async Task CreateAsync(UserEntity user)
         {
             using var connection = new SqliteConnection(_connectionString);
 
@@ -50,11 +50,11 @@ namespace HomeSocialNetwork.Data
             }
         }
 
-        public List<User> GetAll()
+        public List<UserEntity> GetAll()
         {
             using var connection = new SqliteConnection(_connectionString);
             _logger.LogDebug("UserRepository.GetAll: начало запроса");
-            var users = connection.Query<User>(
+            var users = connection.Query<UserEntity>(
             @"SELECT Id, FirstName, LastName, PhoneNumber, Email, Password, CreatedAt
             FROM users ORDER BY Id").ToList();
            
@@ -62,10 +62,10 @@ namespace HomeSocialNetwork.Data
             _logger.LogDebug("UserRepository.GetAll:  конец запроса");
             return users;
         }
-        public User? GetByEmail(string email)
+        public UserEntity? GetByEmail(string email)
         {
                 using var connection = new SqliteConnection(_connectionString);
-                return connection.QueryFirstOrDefault<User>(
+                return connection.QueryFirstOrDefault<UserEntity>(
                 @"SELECT Id, FirstName, LastName, PhoneNumber, Email, Password, CreatedAt
                 FROM users WHERE Email = @Email",
                 new { Email = email });

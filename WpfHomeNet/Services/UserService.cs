@@ -16,7 +16,7 @@ namespace HomeSocialNetwork.Services
         }
 
 
-        public Task<List<User>> GetAllUsersAsync()
+        public Task<List<UserEntity>> GetAllUsersAsync()
         {
             return Task.Run(() =>
             {
@@ -29,7 +29,7 @@ namespace HomeSocialNetwork.Services
         }
 
 
-        public async Task AddUserAsync(User user)
+        public async Task AddUserAsync(UserEntity user)
         {
             // 1. Валидация обязательных полей
             if (string.IsNullOrWhiteSpace(user.FirstName))
@@ -55,7 +55,7 @@ namespace HomeSocialNetwork.Services
 
 
 
-        public User? FindUser(string email)
+        public UserEntity? FindUser(string email)
         {
             if (string.IsNullOrWhiteSpace(email))
                 throw new ArgumentException("Email обязателен");

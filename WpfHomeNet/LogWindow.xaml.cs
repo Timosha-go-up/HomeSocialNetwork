@@ -1,6 +1,9 @@
 ﻿using System.Diagnostics;
 using System.Windows;
-namespace HomeSocialNetwork
+
+
+
+namespace WpfHomeNet
 {
     /// <summary>
     /// Interaction logic for LogWindow.xaml

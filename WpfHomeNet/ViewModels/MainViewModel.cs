@@ -34,8 +34,8 @@ namespace HomeSocialNetwork.ViewModels
             _logger = logger;
         }
 
-        private ObservableCollection<User> _users = new ObservableCollection<User>();
-        public ObservableCollection<User> Users
+        private ObservableCollection<UserEntity> _users = new ObservableCollection<UserEntity>();
+        public ObservableCollection<UserEntity> Users
         {
             get => _users;
             private set
