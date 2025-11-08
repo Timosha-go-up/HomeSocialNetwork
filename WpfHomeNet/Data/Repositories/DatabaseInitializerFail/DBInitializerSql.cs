@@ -4,19 +4,20 @@ using HomeSocialNetwork.Models;
 using Microsoft.Data.Sqlite;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using WpfHomeNet.Helpers;
+using System.Collections.Generic;
 public class DBInitializerSql
 {
-    private readonly string _connectionString;   
+    private readonly string _connectionString;
     private readonly ILogger _logger;
-   
 
-     public DBInitializerSql(ILogger logger,string connectionString)               
+    public DBInitializerSql(ILogger logger, string connectionString)
     {
-            _logger = logger;
-            _connectionString = connectionString ??
-            throw new ArgumentNullException(nameof(connectionString));              
+        _logger = logger;
+        _connectionString = connectionString ??
+            throw new ArgumentNullException(nameof(connectionString));
     }
-    
+
     public async Task InitializeAsync()
     {
         LogInitializationStarted();
@@ -24,42 +25,36 @@ public class DBInitializerSql
         await using var connection = new SqliteConnection(_connectionString);
         await connection.OpenAsync();
 
-        if (!await TableExistsAsync(connection, "users")) 
-                  await CreateUsersTableAsync(connection);
-        
-        else await CheckTableStructureAsync(connection);
-     
+        if (!await TableExistsAsync(connection, "users"))
+            await CreateUsersTableAsync(connection);
+        else
+            await CheckTableStructureAsync(connection);
     }
 
-
-
-
-    private void LogInitializationStarted()
-    {
+    private void LogInitializationStarted() =>
         _logger.LogDebug("Инициализация БД: проверка таблицы users...");
-    }
 
     private async Task<bool> TableExistsAsync(SqliteConnection connection, string tableName)
     {
-        var sql = @"SELECT COUNT(*) FROM sqlite_master 
-                WHERE type = 'table' AND name = @tableName";
-
-        var count = await connection.ExecuteScalarAsync<int>(sql, new { tableName });
-        return count > 0;
+        var sql = "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = @tableName";
+        return await connection.ExecuteScalarAsync<int>(sql, new { tableName = UsersTable.TableName }) > 0;
     }
 
 
     private async Task CreateUsersTableAsync(SqliteConnection connection)
-
-    {   _logger.LogWarning("Таблица users не найдена. Создаю новую...");
+    {
+        _logger.LogWarning("Таблица users не найдена. Создаю новую...");
         try
-        {                       
-            var sql = GenerateCreateTableSql();
-            await connection.ExecuteAsync(sql);
+        {
+            // Формируем SQL для создания таблицы
+            var createSql = $@"
+            CREATE TABLE {UsersTable.TableName} (
+                {string.Join(", ", UsersTable.Columns.Values)}
+            )";
 
+            await connection.ExecuteAsync(createSql);
             _logger.LogDebug("Таблица users успешно создана.");
         }
-
         catch (Exception ex)
         {
             _logger.LogError("Ошибка при создании таблицы users: {Error}", ex.Message);
@@ -73,61 +68,23 @@ public class DBInitializerSql
         _logger.LogInformation("Проверяю структуру таблицы users...");
 
         var issues = new List<string>();
+        var actualColumns = await GetActualColumnsAsync(connection);
+        var expectedColumns = UsersTable.Columns; // Берём готовую схему из UsersTable
 
-        try
+        foreach (var expected in expectedColumns)
         {
-            // Получаем текущую схему из БД
-
-            var actualColumns = connection.Query<dynamic>(@"PRAGMA table_info(users)")
-           .ToDictionary(
-           c => c.name.ToLower(),  // ключ словаря
-           c => new                 // значение словаря
-           {
-               Type = c.type.ToLower(),
-               NotNull = c.notnull == 1,
-               DefaultValue = (c.dflt_value?.ToString() ?? "").ToLower()
-           }
-       );
-            // Получаем ожидаемую схему из модели
-            var expectedColumns = GetColumnMetadata();
-
-            foreach (var expected in expectedColumns)
+            var colName = expected.Key.ToLower();
+            if (!actualColumns.ContainsKey(colName))
             {
-                var colName = expected.Name.ToLower();
-
-                if (!actualColumns.ContainsKey(colName))
-                {
-                    issues.Add($"Отсутствует столбец: {expected.Name}");
-                    continue;
-                }
-
-                var actual = actualColumns[colName];
-
-                // Проверяем тип
-                if (actual.Type != expected.SqlType.ToLower())
-                    issues.Add($"{expected.Name}: тип {actual.Type}, ожидается {expected.SqlType}");
-
-                // Проверяем NOT NULL
-                if (actual.NotNull != expected.IsRequired)
-                    issues.Add($"{expected.Name}: NOT NULL={actual.NotNull}, ожидается {expected.IsRequired}");
-
-                // Проверяем DEFAULT (если задан)
-                if (!string.IsNullOrEmpty(expected.DefaultSql))
-                {
-                    var expectedDefault = expected.DefaultSql
-                        .Replace("DEFAULT (", "")
-                        .Replace(")", "")
-                        .ToLower();
-
-                    if (actual.DefaultValue != expectedDefault)
-                        issues.Add($"{expected.Name}: DEFAULT '{actual.DefaultValue}', ожидается '{expectedDefault}'");
-                }
+                issues.Add($"Отсутствует столбец: {expected.Key}");
+                continue;
             }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError("Ошибка при проверке структуры таблицы users: {Message}", ex.Message);
-            throw;
+
+            var actual = actualColumns[colName];
+            var expectedDef = expected.Value.ToString().ToLower();
+
+            if (actual != expectedDef)
+                issues.Add($"{expected.Key}: ожидается '{expectedDef}', найдено '{actual}'");
         }
 
         if (!issues.Any())
@@ -141,88 +98,40 @@ public class DBInitializerSql
     }
 
 
-
-
-    #region получение строки создания таблицы 
-
-    private string GenerateCreateTableSql()
+    private async Task<Dictionary<string, string>> GetActualColumnsAsync(SqliteConnection connection)
     {
-        var columns = GetColumnMetadata()
-            .Select(col => $"{col.Name} {col.SqlType} {(col.IsRequired ? "NOT NULL" : "")} {col.DefaultSql}".Trim())
-            .ToList();
+        var rows = await connection.QueryAsync<dynamic>("PRAGMA table_info(users)");
 
-        return $"CREATE TABLE users ({string.Join(", ", columns)})";
-    }
+        var dictionary = new Dictionary<string, string>();
 
-
-   
-
-    private string GetSqlType(Type clrType)
-    {
-        clrType = Nullable.GetUnderlyingType(clrType) ?? clrType;
-        return _typeRules.TryGetValue(clrType, out var rule) ? rule.SqlType : "TEXT";
-    }
-
-    private string GetDefaultSql(Type clrType)
-    {
-        clrType = Nullable.GetUnderlyingType(clrType) ?? clrType;
-        return _typeRules.TryGetValue(clrType, out var rule) && rule.DefaultSql != null
-            ? $"DEFAULT ({rule.DefaultSql})"
-            : "";
-    }
-
-    private bool IsPropertyRequired(PropertyInfo prop)
-    {
-        var clrType = prop.PropertyType;
-        var underlying = Nullable.GetUnderlyingType(clrType);
-        var isNullable = underlying != null;
-        var baseType = underlying ?? clrType;
-
-        // Для value-типов: если не nullable → обязательно (NOT NULL)
-        // Для reference-типов: смотрим на правило IsRequired
-        return clrType.IsValueType
-            ? !isNullable
-            : (_typeRules.TryGetValue(baseType, out var rule) ? rule.IsRequired : false); 
-    }
-
-    #endregion
-
-
-
-
-    private class DbColumnMetadata
-    {
-        public string Name { get; set; }
-        public string SqlType { get; set; }
-        public bool IsRequired { get; set; }
-        public string DefaultSql { get; set; } // уже с "DEFAULT (...)"
-    }
-
-
-    private IEnumerable<DbColumnMetadata> GetColumnMetadata()
-    {
-        var properties = typeof(UserEntity).GetProperties();
-
-        foreach (var prop in properties)
+        foreach (var row in rows)
         {
-            yield return new DbColumnMetadata
-            {
-                Name = prop.Name,
-                SqlType = GetSqlType(prop.PropertyType),
-                IsRequired = IsPropertyRequired(prop),
-                DefaultSql = GetDefaultSql(prop.PropertyType)
-            };
+            // Безопасное приведение к строке с обработкой null
+            var name = (row.name?.ToString() ?? "").ToLower();
+            var type = (row.type?.ToString() ?? "").ToLower();
+            var notNull = row.notnull?.Equals(1) ?? false;
+            var dfltValue = row.dflt_value?.ToString() ?? "";
+
+            // Формируем определение колонки
+            var definitionParts = new List<string> { type };
+
+            if (notNull)
+                definitionParts.Add("NOT NULL");
+
+            if (!string.IsNullOrEmpty(dfltValue))
+                definitionParts.Add($"DEFAULT {dfltValue}");
+
+            var definition = string.Join(" ", definitionParts).Trim().ToLower();
+
+            // Добавляем в словарь (избегаем дубликатов)
+            if (!dictionary.ContainsKey(name))
+                dictionary[name] = definition;
         }
+
+        return dictionary;
     }
 
 
-    private static readonly Dictionary<Type, (string SqlType, string DefaultSql, bool IsRequired)> _typeRules =
-    new()
-    {
-        [typeof(int)] = ("INTEGER", null, true),
-        [typeof(string)] = ("TEXT", "''", false), // DEFAULT '', но может быть NULL
-        [typeof(DateTime)] = ("DATETIME", "DATETIME('now', 'localtime')", true)
-    };
 
 
 
