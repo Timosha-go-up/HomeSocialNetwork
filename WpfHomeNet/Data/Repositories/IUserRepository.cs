@@ -10,7 +10,7 @@ namespace WpfHomeNet.Data.Repositories
     public interface IUserRepository
     {
         // Создание (Create)
-        Task<UserEntity> CreateAsync(UserEntity user);
+        Task<UserEntity> InsertUserAsync(UserEntity user);
 
         // Чтение (Read)
         Task<List<UserEntity>> GetAllAsync();

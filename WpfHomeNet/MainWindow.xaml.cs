@@ -28,7 +28,7 @@ namespace WpfHomeNet
         public LogWindow _logWindow;
         private MainViewModel _mainVm; // Сохраняем ссылку на VM
         private IStatusUpdater _status; // Только этот интерфейс!
-        private DBInitializerSql _databaseInitializer;
+        private SqlLiteDBInitializer _databaseInitializer;
         private string _connectionDB;
         public MainWindow()
         {
@@ -64,7 +64,7 @@ namespace WpfHomeNet
 
                 _logger.LogInformation("Application started. PID: " + Process.GetCurrentProcess().Id);
 
-                _databaseInitializer = new DBInitializerSql(_logger, _connectionDB);
+                _databaseInitializer = new DBInitializer(_logger, _connectionDB);
 
                 // Асинхронное ожидание инициализации БД
                 await _databaseInitializer.InitializeAsync();

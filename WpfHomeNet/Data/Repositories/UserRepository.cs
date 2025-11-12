@@ -1,44 +1,54 @@
 ﻿using Dapper;
 using HomeSocialNetwork.Helpers;
 using HomeSocialNetwork.Models;
-using Microsoft.Data.Sqlite;
-using WpfHomeNet.Data.ConnectionFactories;
+using Microsoft.Data.SqlClient;
+using System.Data;
+using WpfHomeNet.Data.TableUserBDs;
+
 namespace WpfHomeNet.Data.Repositories
 {
    public class UserRepository:IUserRepository
     {
-        private readonly IDbConnectionFactory _connectionFactory;
+        private readonly IDbConnection _connection;
+        BaseUsersTable _usersTable;
         private readonly ILogger _logger;
 
-        public UserRepository(IDbConnectionFactory connectionFactory, ILogger logger)
+        public UserRepository(IDbConnection connection, ILogger logger,BaseUsersTable usersTable)
         {
-            _connectionFactory = connectionFactory ??
-                throw new ArgumentNullException(nameof(connectionFactory));
+            _connection = connection ??
+                throw new ArgumentNullException(nameof(connection));
             _logger = logger ??
                 throw new ArgumentNullException(nameof(logger));
+            _usersTable = usersTable;
         }
 
-        public async Task<UserEntity> CreateAsync(UserEntity user)
+        public async Task<UserEntity> InsertUserAsync(UserEntity user)
         {
-            using var connection = _connectionFactory.CreateConnection();
-            await connection.ExecuteAsync(
-                @"INSERT INTO users (FirstName, LastName, PhoneNumber, Email, Password)
-                VALUES (@FirstName, @LastName, @PhoneNumber, @Email, @Password)",
-                user);
-
-            _logger.LogInformation($"Пользователь {user.FirstName} добавлен.");
-            return user;
+            try
+            {
+                var sql = _usersTable.GenerateInsertSql();
+                var newId = await _connection.QuerySingleAsync<int>(sql, user);
+                user.Id = newId;
+                return user;
+            }
+            catch (SqlException ex)
+            {
+                    _logger.LogError(
+                    $"SQL Error ErrorCode:{ex.Number}" +
+                    $" ErrorMessage {ex.Message} " +
+                    $" UserEmail: {user.Email}");
+                                                                                          
+                throw; // просто перебрасываем дальше — лог уже есть
+            }
         }
 
 
 
         public async Task DeleteAsync(int id)
         {
-            using var connection = _connectionFactory.CreateConnection();
-            var affectedRows = await connection.ExecuteAsync(
-                @"DELETE FROM users WHERE Id = @Id",
-                new { Id = id });
-
+            
+            var affectedRows = await _connection.ExecuteAsync(_usersTable.GenerateDeleteSql(), new { Id = id });
+                               
             if (affectedRows == 0)
             {
                 throw new NotFoundException($"Пользователь с ID {id} не найден.");
@@ -51,10 +61,8 @@ namespace WpfHomeNet.Data.Repositories
 
         public async Task<List<UserEntity>> GetAllAsync()
         {
-            using var connection = _connectionFactory.CreateConnection();
-            var users = (await connection.QueryAsync<UserEntity>(
-            @"SELECT Id, FirstName, LastName, PhoneNumber, Email,
-            Password, CreatedAt FROM users ORDER BY Id"))         
+           
+            var users = (await _connection.QueryAsync<UserEntity>(_usersTable.GenerateSelectAllSql()))         
             .ToList(); 
 
            _logger.LogInformation($"Получено {users.Count} пользователей.");
@@ -65,8 +73,8 @@ namespace WpfHomeNet.Data.Repositories
        
         public async Task<UserEntity?> GetByIdAsync(int id)
         {
-            using var connection = _connectionFactory.CreateConnection();
-            return await connection.QueryFirstOrDefaultAsync<UserEntity>(
+            
+            return await _connection.QueryFirstOrDefaultAsync<UserEntity>(
                 @"SELECT Id, FirstName, LastName, PhoneNumber, Email, Password, CreatedAt
         FROM users WHERE Id = @Id",
                 new { Id = id });
@@ -75,8 +83,8 @@ namespace WpfHomeNet.Data.Repositories
 
         public async Task<UserEntity?> GetByEmailAsync(string email)
         {
-            using var connection = _connectionFactory.CreateConnection();
-            return await connection.QueryFirstOrDefaultAsync<UserEntity>(
+           
+            return await _connection.QueryFirstOrDefaultAsync<UserEntity>(
                 @"SELECT Id, FirstName, LastName, PhoneNumber, Email, Password, CreatedAt
         FROM users WHERE Email = @Email",
                 new { Email = email });
@@ -85,8 +93,8 @@ namespace WpfHomeNet.Data.Repositories
 
         public async Task UpdateAsync(UserEntity user)
         {
-            using var connection = _connectionFactory.CreateConnection();
-            await connection.ExecuteAsync(
+           
+            await _connection.ExecuteAsync(
                 @"UPDATE users SET FirstName = @FirstName, LastName = @LastName,
            PhoneNumber = @PhoneNumber, Email = @Email, Password = @Password
            WHERE Id = @Id",
@@ -97,21 +105,5 @@ namespace WpfHomeNet.Data.Repositories
 
 
 
-    }
-
-    [Serializable]
-    internal class NotFoundException : Exception
-    {
-        public NotFoundException()
-        {
-        }
-
-        public NotFoundException(string? message) : base(message)
-        {
-        }
-
-        public NotFoundException(string? message, Exception? innerException) : base(message, innerException)
-        {
-        }
     }
 }

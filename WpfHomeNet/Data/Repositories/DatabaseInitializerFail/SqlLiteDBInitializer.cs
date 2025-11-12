@@ -1,58 +1,52 @@
-﻿using Dapper;
-using HomeSocialNetwork.Helpers;
-using HomeSocialNetwork.Models;
-using Microsoft.Data.Sqlite;
-using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
-using WpfHomeNet.Helpers;
-using System.Collections.Generic;
-public class DBInitializerSql
-{
+﻿using HomeSocialNetwork.Helpers;
+using WpfHomeNet.Data.TableUserBDs;
+public class SqlLiteDBInitializer
+{  
+    IDbconn
+    private readonly BaseUsersTable _usersTable; 
     private readonly string _connectionString;
     private readonly ILogger _logger;
+   
+   
 
-    public DBInitializerSql(ILogger logger, string connectionString)
+    public SqlLiteDBInitializer(BaseUsersTable usersTable, string connectionString, ILogger logger)
     {
+        _usersTable = usersTable;
+        _connectionString = connectionString;
         _logger = logger;
-        _connectionString = connectionString ??
-            throw new ArgumentNullException(nameof(connectionString));
     }
 
     public async Task InitializeAsync()
     {
-        LogInitializationStarted();
-
-        await using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync();
-
-        if (!await TableExistsAsync(connection, "users"))
-            await CreateUsersTableAsync(connection);
-        else
-            await CheckTableStructureAsync(connection);
-    }
-
-    private void LogInitializationStarted() =>
         _logger.LogDebug("Инициализация БД: проверка таблицы users...");
 
-    private async Task<bool> TableExistsAsync(SqliteConnection connection, string tableName)
+        
+
+        if (!await TableExistsAsync())
+        {
+            await CreateUsersTableAsync(); 
+        }
+
+        else
+        {
+            await CheckTableStructureAsync();
+        }            
+    }
+        
+    private async Task<bool> TableExistsAsync()
     {
-        var sql = "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = @tableName";
-        return await connection.ExecuteScalarAsync<int>(sql, new { tableName = UsersTable.TableName }) > 0;
+       
+        return await _connection.ExecuteScalarAsync<int>(_usersTable.GenerateTableExistsSql(), new { tableName = _usersTable.TableName }) > 0;
     }
 
 
-    private async Task CreateUsersTableAsync(SqliteConnection connection)
+    private async Task CreateUsersTableAsync()
     {
         _logger.LogWarning("Таблица users не найдена. Создаю новую...");
         try
-        {
-            // Формируем SQL для создания таблицы
-            var createSql = $@"
-            CREATE TABLE {UsersTable.TableName} (
-                {string.Join(", ", UsersTable.Columns.Values)}
-            )";
+        {                        
+            await connection.ExecuteAsync(_usersTable.GenerateCreateTableSql());
 
-            await connection.ExecuteAsync(createSql);
             _logger.LogDebug("Таблица users успешно создана.");
         }
         catch (Exception ex)
@@ -63,13 +57,13 @@ public class DBInitializerSql
     }
 
 
-    private async Task CheckTableStructureAsync(SqliteConnection connection)
+    private async Task CheckTableStructureAsync()
     {
         _logger.LogInformation("Проверяю структуру таблицы users...");
 
         var issues = new List<string>();
         var actualColumns = await GetActualColumnsAsync(connection);
-        var expectedColumns = UsersTable.Columns; // Берём готовую схему из UsersTable
+        var expectedColumns = _usersTable.Columns; // Берём готовую схему из UsersTable
 
         foreach (var expected in expectedColumns)
         {
@@ -98,7 +92,7 @@ public class DBInitializerSql
     }
 
 
-    private async Task<Dictionary<string, string>> GetActualColumnsAsync(SqliteConnection connection)
+    private async Task<Dictionary<string, string>> GetActualColumnsAsync(IDbConnection connection)
     {
         var rows = await connection.QueryAsync<dynamic>("PRAGMA table_info(users)");
 
@@ -130,6 +124,7 @@ public class DBInitializerSql
 
         return dictionary;
     }
+
 
 
 

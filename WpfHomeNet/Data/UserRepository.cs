@@ -1,15 +1,19 @@
 ﻿using Dapper;
 using HomeSocialNetwork.Helpers;
 using HomeSocialNetwork.Models;
+using Microsoft.Data.SqlClient;
 using Microsoft.Data.Sqlite;
+using System.Data;
+using System.Data.Common;
 namespace HomeSocialNetwork.Data
 {
     public class UserRepository
     {
         private readonly string _connectionString;
-        private readonly DBInitializerSql _databaseInitializer;
+        private readonly SqlLiteDBInitializer _databaseInitializer;
         private readonly ILogger _logger;
-        public UserRepository(DBInitializerSql databaseInitializer,string connectionString, ILogger logger)
+        IDbConnection connection;
+        public UserRepository(SqlLiteDBInitializer databaseInitializer,string connectionString, ILogger logger)
           
         {
             _databaseInitializer = databaseInitializer;
@@ -20,7 +24,7 @@ namespace HomeSocialNetwork.Data
         }
         public async Task CreateAsync(UserEntity user)
         {
-            using var connection = new SqliteConnection(_connectionString);
+            
 
             try
             {
@@ -52,7 +56,7 @@ namespace HomeSocialNetwork.Data
 
         public List<UserEntity> GetAll()
         {
-            using var connection = new SqliteConnection(_connectionString);
+           
             _logger.LogDebug("UserRepository.GetAll: начало запроса");
             var users = connection.Query<UserEntity>(
             @"SELECT Id, FirstName, LastName, PhoneNumber, Email, Password, CreatedAt
@@ -64,12 +68,20 @@ namespace HomeSocialNetwork.Data
         }
         public UserEntity? GetByEmail(string email)
         {
-                using var connection = new SqliteConnection(_connectionString);
+
+            
+                
                 return connection.QueryFirstOrDefault<UserEntity>(
                 @"SELECT Id, FirstName, LastName, PhoneNumber, Email, Password, CreatedAt
                 FROM users WHERE Email = @Email",
                 new { Email = email });
         }
     }
+
+
+
+
+
+
 
 }

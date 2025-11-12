@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Data\DB\" />
+    <Folder Include="Data\SqlLiteBD\" />
     <Folder Include="Resources\" />
     <Folder Include="Services\" />
     <Folder Include="Views\" />
