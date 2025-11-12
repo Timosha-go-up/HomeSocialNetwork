@@ -10,10 +10,10 @@ namespace HomeSocialNetwork.Data
     public class UserRepository
     {
         private readonly string _connectionString;
-        private readonly SqlLiteDBInitializer _databaseInitializer;
+        private readonly DBInitializer _databaseInitializer;
         private readonly ILogger _logger;
         IDbConnection connection;
-        public UserRepository(SqlLiteDBInitializer databaseInitializer,string connectionString, ILogger logger)
+        public UserRepository(DBInitializer databaseInitializer,string connectionString, ILogger logger)
           
         {
             _databaseInitializer = databaseInitializer;

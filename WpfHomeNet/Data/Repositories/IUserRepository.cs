@@ -21,6 +21,6 @@ namespace WpfHomeNet.Data.Repositories
         Task UpdateAsync(UserEntity user);
 
         // Удаление (Delete)
-        Task DeleteAsync(int id);
+        Task DeleteByIdAsync(int id);
     }
 }

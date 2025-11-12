@@ -6,6 +6,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WpfHomeNet.Data.GetTableStructure.WpfHomeNet.Data.GetTableStructure;
 
 namespace WpfHomeNet.Data.TableUserBDs
 {
@@ -38,9 +39,9 @@ namespace WpfHomeNet.Data.TableUserBDs
         // Готовые строки для SQL
         public string AllFields => string.Join(", ", Columns.Keys);
         public string DataFields => string.Join(", ", Columns.Keys.Where(k => k != "Id"));
+       
 
-
-       public abstract   string GenerateCreateTableSql();
+        public abstract   string GenerateCreateTableSql();
        public abstract string GenerateInsertSql();
        public abstract string  GenerateSelectByIdSql();         
        public abstract string  GenerateSelectByEmailSql();

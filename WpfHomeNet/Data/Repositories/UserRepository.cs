@@ -44,10 +44,11 @@ namespace WpfHomeNet.Data.Repositories
 
 
 
-        public async Task DeleteAsync(int id)
+        public async Task DeleteByIdAsync(int id)
         {
             
-            var affectedRows = await _connection.ExecuteAsync(_usersTable.GenerateDeleteSql(), new { Id = id });
+            var affectedRows = 
+            await _connection.ExecuteAsync(_usersTable.GenerateDeleteSql(),new { Id = id });
                                
             if (affectedRows == 0)
             {
@@ -62,8 +63,8 @@ namespace WpfHomeNet.Data.Repositories
         public async Task<List<UserEntity>> GetAllAsync()
         {
            
-            var users = (await _connection.QueryAsync<UserEntity>(_usersTable.GenerateSelectAllSql()))         
-            .ToList(); 
+            var users = (await _connection.QueryAsync<UserEntity>
+            (_usersTable.GenerateSelectAllSql())).ToList(); 
 
            _logger.LogInformation($"Получено {users.Count} пользователей.");
            return users;
@@ -72,38 +73,26 @@ namespace WpfHomeNet.Data.Repositories
 
        
         public async Task<UserEntity?> GetByIdAsync(int id)
-        {
-            
-            return await _connection.QueryFirstOrDefaultAsync<UserEntity>(
-                @"SELECT Id, FirstName, LastName, PhoneNumber, Email, Password, CreatedAt
-        FROM users WHERE Id = @Id",
-                new { Id = id });
+        {            
+            return await _connection.QueryFirstOrDefaultAsync<UserEntity>
+            (_usersTable.GenerateSelectByIdSql(), new { Id = id });               
         }
 
 
         public async Task<UserEntity?> GetByEmailAsync(string email)
-        {
-           
-            return await _connection.QueryFirstOrDefaultAsync<UserEntity>(
-                @"SELECT Id, FirstName, LastName, PhoneNumber, Email, Password, CreatedAt
-        FROM users WHERE Email = @Email",
-                new { Email = email });
+        {           
+            return await _connection.QueryFirstOrDefaultAsync<UserEntity>
+           (_usersTable.GenerateSelectByEmailSql(),new { Email = email });
         }
 
 
         public async Task UpdateAsync(UserEntity user)
-        {
-           
-            await _connection.ExecuteAsync(
-                @"UPDATE users SET FirstName = @FirstName, LastName = @LastName,
-           PhoneNumber = @PhoneNumber, Email = @Email, Password = @Password
-           WHERE Id = @Id",
-                user);
+        {           
+            await _connection.ExecuteAsync
+           (_usersTable.GenerateUpdateSql(),user);
 
             _logger.LogInformation($"Пользователь {user.Id} обновлён.");
         }
-
-
 
     }
 }

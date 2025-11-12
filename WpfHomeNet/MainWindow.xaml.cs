@@ -28,7 +28,7 @@ namespace WpfHomeNet
         public LogWindow _logWindow;
         private MainViewModel _mainVm; // Сохраняем ссылку на VM
         private IStatusUpdater _status; // Только этот интерфейс!
-        private SqlLiteDBInitializer _databaseInitializer;
+        private DBInitializer _databaseInitializer;
         private string _connectionDB;
         public MainWindow()
         {
