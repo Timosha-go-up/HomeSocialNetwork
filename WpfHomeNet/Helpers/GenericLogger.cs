@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HomeSocialNetwork.Helpers
+namespace WpfHomeNet.Helpers
 {
     public class GenericLogger : ILogger
     {
@@ -51,7 +51,7 @@ namespace HomeSocialNetwork.Helpers
             if (string.IsNullOrEmpty(name))
                 return "Unknown";
 
-            // Удаляем компиляторные артефакты (например, "<>c__DisplayClass...")
+            
             int startIndex = name.IndexOf('<');
             if (startIndex >= 0)
             {

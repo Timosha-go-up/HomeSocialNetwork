@@ -1,6 +1,6 @@
-﻿using HomeSocialNetwork.Helpers;
-using HomeSocialNetwork.Models;
-using HomeSocialNetwork.Services;
+﻿using WpfHomeNet.Helpers;
+using WpfHomeNet.Models;
+using WpfHomeNet.Services;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Configuration;

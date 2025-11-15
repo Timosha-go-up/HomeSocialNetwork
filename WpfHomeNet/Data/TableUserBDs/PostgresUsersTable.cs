@@ -1,28 +1,28 @@
-﻿namespace WpfHomeNet.Data.TableUserBDs
+﻿using WpfHomeNet.Data.Generators;
+
+namespace WpfHomeNet.Data.TableUserBDs
 {
-    public class PostgresUsersTable : BaseUsersTable
+    public class PostgresUsersTable 
     {
-        // Формируем Columns через DefineColumns — без дублирования
-        public override IReadOnlyDictionary<string, Column> Columns
-     => DefineColumns(Id, FirstName, LastName, PhoneNumber, Email, Password, CreatedAt);
+       
 
         public PostgresUsersTable()
         {
             // Задаём SqlType для каждой колонки
-            Id.SqlType = "SERIAL PRIMARY KEY";
-            FirstName.SqlType = "VARCHAR(100) NOT NULL";
-            LastName.SqlType = "VARCHAR(100)";
-            PhoneNumber.SqlType = "VARCHAR(100)";
-            Email.SqlType = "VARCHAR(254) NOT NULL UNIQUE";
-            Password.SqlType = "VARCHAR(255) NOT NULL";
-            CreatedAt.SqlType = "TIMESTAMP DEFAULT NOW()";
+            Id.Type = "SERIAL PRIMARY KEY";
+            FirstName.Type = "VARCHAR(100) NOT NULL";
+            LastName.Type = "VARCHAR(100)";
+            PhoneNumber.Type = "VARCHAR(100)";
+            Email.Type = "VARCHAR(254) NOT NULL UNIQUE";
+            Password.Type = "VARCHAR(255) NOT NULL";
+            CreatedAt.Type = "TIMESTAMP DEFAULT NOW()";
         }
 
-
+        #region методы запросы
         public override string GenerateCreateTableSql()
         {
             var columnsSql = string.Join(", ", Columns.Values.Select(c =>
-                $"{c.Name} {c.SqlType}"));
+                $"{c.Name} {c.Type}"));
             return $"CREATE TABLE {TableName} ({columnsSql})";
         }
 
@@ -53,9 +53,9 @@
         public override string GenerateTableExistsSql()
     => $"SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = '{TableName}')";
 
-        public override string GenerateAddColumnSql(Column column)
+        public override string GenerateAddColumnSql(ColumnMetadata column)
         {
-            return $"ALTER TABLE {TableName} ADD COLUMN IF NOT EXISTS {column.Name} {column.SqlType}";
+            return $"ALTER TABLE {TableName} ADD COLUMN IF NOT EXISTS {column.Name} {column.Type}";
         }
 
 
@@ -64,5 +64,6 @@
             var columns = string.Join(", ", Columns.Keys);
             return $"SELECT {columns} FROM {TableName}";
         }
+        #endregion
     }
 }

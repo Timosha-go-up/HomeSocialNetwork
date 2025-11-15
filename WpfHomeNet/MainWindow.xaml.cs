@@ -1,19 +1,14 @@
-﻿using HomeSocialNetwork.Data;
-using HomeSocialNetwork.Helpers;
-using HomeSocialNetwork.Models;
-using HomeSocialNetwork.Services;
-using HomeSocialNetwork.UiHelpers;
-using HomeSocialNetwork.ViewModels;
-using System.Collections.Concurrent;
+﻿using WpfHomeNet.Helpers;
+using WpfHomeNet.Services;
+
 using System.Diagnostics;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
-using System.Windows.Media.Animation;
-using System.Windows.Threading;
 using WpfHomeNet.UiHelpers;
-
-
+using WpfHomeNet.Data.Repositories;
+using Microsoft.Data.Sqlite;
+using WpfHomeNet.Data.TableUserBDs;
+using WpfHomeNet.Data.GetTableStructure;
+using WpfHomeNet.ViewModels;
 namespace WpfHomeNet
 {
     /// <summary>
@@ -22,14 +17,17 @@ namespace WpfHomeNet
 
     public partial class MainWindow : Window
     {
+        SqliteConnection _sqliteConnection;
         private ILogger _logger;
         private UserService _userService;
         private LogManager _logManager;
         public LogWindow _logWindow;
-        private MainViewModel _mainVm; // Сохраняем ссылку на VM
-        private IStatusUpdater _status; // Только этот интерфейс!
+        private MainViewModel _mainVm; 
+        private IStatusUpdater _status;
         private DBInitializer _databaseInitializer;
         private string _connectionDB;
+        SqliteUsersTable _sqliteUsersTable;
+        GetSqliteTableSchema _getTableSchema;
         public MainWindow()
         {
             InitializeComponent();
@@ -54,22 +52,31 @@ namespace WpfHomeNet
         {
             try
             {
+                _getTableSchema = new GetSqliteTableSchema();
+                _sqliteUsersTable = new SqliteUsersTable(); // Создаём папку Data/DB/, если её нет
+                PathBaseFiles.EnsureDatabaseDirectoryExists();
+
+
+                // Получаем корректный путь к БД (основной или резервный)
+                string dbPath = PathBaseFiles.GetValidDatabasePath(); ; _connectionDB = $"Data Source={dbPath}";
+                _sqliteConnection = new SqliteConnection(_connectionDB);
                 _logWindow = new LogWindow();
                 _logManager = new LogManager(_logWindow);
                 _logger = new GenericLogger(_logManager.WriteLog);
                 // Получаем валидный путь к БД (основной или резервный)
-                var dbPath = PathBaseFiles.GetValidDatabasePath();
+               
                 _logger.LogInformation($"Путь бд {dbPath}");
-                _connectionDB = $"Data Source={dbPath}";
+                       
 
                 _logger.LogInformation("Application started. PID: " + Process.GetCurrentProcess().Id);
 
-                _databaseInitializer = new DBInitializer(_logger, _connectionDB);
+                _databaseInitializer = new DBInitializer(_sqliteConnection,_sqliteUsersTable,_getTableSchema,_logger);
 
                 // Асинхронное ожидание инициализации БД
                 await _databaseInitializer.InitializeAsync();
 
-                var repo = new UserRepository(_databaseInitializer, _connectionDB, _logger);
+                var repo = new UserRepository(_sqliteConnection, _logger,_sqliteUsersTable);
+
                 _userService = new UserService(repo, _logger);
 
                 // Создание ViewModel

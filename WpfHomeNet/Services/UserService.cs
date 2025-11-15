@@ -1,7 +1,8 @@
-﻿using HomeSocialNetwork.Data;
-using HomeSocialNetwork.Helpers;
-using HomeSocialNetwork.Models;
-namespace HomeSocialNetwork.Services
+﻿using WpfHomeNet.Data;
+using WpfHomeNet.Helpers;
+using WpfHomeNet.Models;
+using WpfHomeNet.Data.Repositories;
+namespace WpfHomeNet.Services
 {
     public class UserService
     {
@@ -20,10 +21,10 @@ namespace HomeSocialNetwork.Services
         {
             return Task.Run(() =>
             {
-                var users = _repo.GetAll(); // Синхронный вызов
+                var users = _repo.GetAllAsync(); // Синхронный вызов
                 if (users == null)
                     throw new InvalidOperationException("Репозиторий вернул null");
-                _logger.LogInformation($" GetAllUsersAsync вернул {users.Count} пользователей");
+               // _logger.LogInformation($" GetAllUsersAsync вернул {users.Count} пользователей");
                 return users;
             });
         }
@@ -46,22 +47,18 @@ namespace HomeSocialNetwork.Services
             user.PhoneNumber ??= string.Empty;
 
             // 3. Асинхронный вызов репозитория
-            await _repo.CreateAsync(user);
+            await _repo.InsertUserAsync(user);
         }
 
 
-
-
-
-
-
-        public UserEntity? FindUser(string email)
+        public async Task<UserEntity?> FindUserAsync(string email)
         {
             if (string.IsNullOrWhiteSpace(email))
                 throw new ArgumentException("Email обязателен");
 
-            return _repo.GetByEmail(email);
+            return await _repo.GetByEmailAsync(email);
         }
+
     }
 
 }

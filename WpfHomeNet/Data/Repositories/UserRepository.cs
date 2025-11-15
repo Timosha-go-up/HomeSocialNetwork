@@ -1,6 +1,6 @@
 ﻿using Dapper;
-using HomeSocialNetwork.Helpers;
-using HomeSocialNetwork.Models;
+using WpfHomeNet.Helpers;
+using WpfHomeNet.Models;
 using Microsoft.Data.SqlClient;
 using System.Data;
 using WpfHomeNet.Data.TableUserBDs;

@@ -1,84 +1,63 @@
 ﻿using System.Data;
+using WpfHomeNet.Data.Generators;
 
 namespace WpfHomeNet.Data.TableUserBDs
 {
-    public class SqliteUsersTable : BaseUsersTable
+    public class SqliteUsersTable 
     {
-        private const string TextNotNull = "TEXT NOT NULL";
-        private const string DateTimeDefault = "DATETIME DEFAULT (datetime('now', 'localtime'))";
+        
 
-        public SqliteUsersTable()
+
+
+        #region методы запросы 
+        public  string GenerateCreateTableSql()
         {
-            Id.SqlType = "INTEGER PRIMARY KEY AUTOINCREMENT";
-            FirstName.SqlType = TextNotNull;
-            LastName.SqlType = "TEXT";
-            PhoneNumber.SqlType = "TEXT";
-            Email.SqlType = "TEXT NOT NULL UNIQUE";
-            Password.SqlType = TextNotNull;
-            CreatedAt.SqlType = DateTimeDefault;
-        }
-
-        public override IReadOnlyDictionary<string, Column> Columns =>
-            DefineColumns(Id, FirstName, LastName, PhoneNumber, Email, Password, CreatedAt);
-
-        // Реализация интерфейса ITableSqlOperations
-        public override string GenerateCreateTableSql()
-        {
-            var columnsSql = string.Join(", ", Columns.Values.Select(c => $"{c.Name} {c.SqlType}"));
+            var columnsSql = string.Join(", ", Columns.Values.Select(c => $"{c.Name} {c.DataType}"));
             return $"CREATE TABLE {TableName} ({columnsSql})";
         }
 
-        public override string GenerateInsertSql()
+        public  string GenerateInsertSql()
         {
             var fields = DataFields;
             var values = string.Join(", ", DataFields.Split(',').Select(f => $"@{f.Trim()}"));
             return $"INSERT INTO {TableName} ({fields}) VALUES ({values})";
         }
 
-        public override string GenerateSelectByIdSql() =>
+        public  string GenerateSelectByIdSql() =>
             $"SELECT {AllFields} FROM {TableName} WHERE Id = @Id";
 
 
-        public override string GenerateSelectByEmailSql() =>
+        public  string GenerateSelectByEmailSql() =>
             $"SELECT {AllFields} FROM {TableName} WHERE Email = @Email";
 
-        public override string GenerateUpdateSql()
+        public  string GenerateUpdateSql()
         {
             var setClause = string.Join(", ", DataFields.Split(',')
                 .Select(f => $"{f.Trim()} = @{f.Trim()}"));
             return $"UPDATE {TableName} SET {setClause} WHERE Id = @Id";
         }
 
-        public override string GenerateDeleteSql() =>
+        public  string GenerateDeleteSql() =>
             $"DELETE FROM {TableName} WHERE Id = @Id";
 
 
-        public override string GenerateTableExistsSql() =>
+        public  string GenerateTableExistsSql() =>
             $"SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='{TableName}'";
 
 
-        public override string GenerateAddColumnSql(Column column) =>
-            $"ALTER TABLE {TableName} ADD COLUMN {column.Name} {column.SqlType}";
+        public  string GenerateAddColumnSql(ColumnMetadata column) =>
+            $"ALTER TABLE {TableName} ADD COLUMN {column.Name} {column.DataType}";
 
 
 
-        public override string GenerateSelectAllSql()
+        public  string GenerateSelectAllSql()
         {
             var columns = string.Join(", ", Columns.Keys);
             return $"SELECT {columns} FROM {TableName}";
         }
-
-
-      
-
+        #endregion
 
     }
 
 }
-
-
-
-
-
-
 

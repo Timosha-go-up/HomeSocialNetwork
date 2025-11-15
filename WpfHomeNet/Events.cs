@@ -1,6 +1,6 @@
 ﻿using HomeSocialNetwork;
-using HomeSocialNetwork.Models;
-using HomeSocialNetwork.ViewModels;
+using WpfHomeNet.Models;
+using WpfHomeNet.ViewModels;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
